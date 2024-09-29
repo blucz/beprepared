@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "beprepared"
+version = "0.1.0"
+description = ""
+authors = ["Brian Luczkiewicz <brian@blucz.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torchvision = "^0.19.1"
+torch = "^2.4.1"
+tqdm = "^4.66.5"
+peft = "^0.12.0"
+nudenet = ">=3.4.2"
+openai = "^1.48.0"
+pydantic = "^2.9.2"
+open-clip-torch = "^2.26.1"
+einops = "^0.8.0"
+einops-exts = "^0.0.4"
+qwen-vl-utils = "^0.0.8"
+litellm = "^1.48.3"
+fastapi = "^0.115.0"
+uvicorn = "^0.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
