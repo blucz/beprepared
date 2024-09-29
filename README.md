@@ -86,7 +86,7 @@ at any time.
 Here are some items planned for the future:
 
 - Implement a HumanRank node that uses pairwise rankings performed by a human to compute ELO ranks for images
-- Implement nodes that train small NNs to predict tags, filter results, or rank results so that human work on a subset of a large dataset can be applied to the whole dataset
+- Implement nodes that train small NNs or few-shot approaches to predict tags, filter results, or rank results so that human work on a subset of a large dataset can be applied to the whole dataset
 - Publish on PyPI and add installation instrucitons
 - Improve performance of VLMs
 - Support for multiple GPUs
