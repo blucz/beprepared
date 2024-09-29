@@ -3,8 +3,6 @@
 </p>
 <p align="left">
 
-## Introduction
-
 beprepared is an easy and efficient way to prepare high quality image datasets for diffusion model fine-tuning.
 
 It is designed to facilitate both human and machine-driven data preparation work in a non-destructive environment
