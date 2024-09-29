@@ -97,6 +97,7 @@ Here are some items planned for the future:
 - Create guide for contributing new nodes
 - Support data augmentation nodes like flip, caption variations, etc.
 - Support sidecar .json files for better interoperability with other tools/code
+- Support Local LLMs instead of just the API-based litellm abstraction
 
 In the future, beprepared will support LLM finetuning datasets as well, but that work will wait until image-related 
 functionality is more mature.
