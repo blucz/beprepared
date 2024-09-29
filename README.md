@@ -10,32 +10,35 @@ beprepared is an easy and efficient way to prepare high quality image datasets f
 It is designed to facilitate both human and machine-driven data preparation work in a non-destructive environment
 that aggressively avoids duplication of effort, even as the data preparation workflow evolves. 
 
-A typical data preparation workflow might look like this:
+# The Problem
+
+A typical data prep workflow may look like this:
 
 - Scrape images from the web
 - Filter out images that are too small, or low quality
 - Manually select images that are relevant to your task
-- Auto-caption images using GPT-4o, JoyCaption, LLaVa, BLIP3, or another VLLM
-- Manually tag images with concepts or that are not understood by the automatic captioner
-- Use an LLM prompt to join tags + captions into a final caption, perhaps introducing additional rules
+- Auto-caption images using GPT-4o, JoyCaption, Llama 3.2, BLIP3, xGen-mm, or another VLM
+- Manually tag images with concepts or that are not understood by the VLM
+- Use an LLM prompt to compose tags + captions into a final caption, perhaps introducing additional rules
 - Perform caption augmentation by generating a few caption variations for each image
-- Create a training directory with foo.jpg, foo.txt, bar.jpg, bar.txt, ...
+- Create a training directory with `foo.jpg`, `foo.txt`, `bar.jpg`, `bar.txt`, ...
 
-While it's possible to do this manually with the help of a bunch of little python scripts that work on your .jpg 
+While it's possible to do this manually with the help of a bunch of python scripts that work on your .jpg 
 and .txt files, it can be very cumbersome, especially as you iterate on the process or add new images. If 
 you've done this a lot, you probably have graveyard of one-off scripts and datasets in various states of 
-disarray for historical reasons, and it's becoming unmanageable.
+disarray.
 
-Furthermore, existing user interfaces for tasks that require a human in the loop, such as filtering scraped images, 
-or manually tagging images for concepts that don't appear in pre-training data, are clumsy at best. In most cases
-they modify caption files directly, and the UIs are not built for speed or efficiency, often lacking basic comforts
-like keyboard shortcuts, image preloading, or mobile-friendly design.
+Existing user interfaces for tasks that require a human in the loop, such as filtering scraped images, or 
+manually tagging images are clumsy at best. In many cases they are built in sluggish frameworks like Gradio,
+lack keyboard shortcuts, are not mobile friendly, and are not non-destructive. 
 
 Humans are human. If the tooling is bad, the datasets will be bad. If the datasets are bad, the models trained with 
-them will be bad. If the models are bad, the consumers of those models will make bad images, or get frustrated, or 
+them will be bad. If the models are bad, the consumers of those models will make bad images, get frustrated, or 
 give up. beprepared is designed to break this cycle by making the data preparation process as friendly as possible.
 
-With beprepared, you can define a simple workflow like this:
+# Quick Example
+
+Install beprepared using poetry, then define a simple workflow like this: 
 
       from beprepared import *
 
@@ -52,8 +55,8 @@ With beprepared, you can define a simple workflow like this:
           workspace.run()
 
 When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
-then ingest them into the workspace. Next, we will hit the HumanSelection step, and it will launch a web based UI 
-with a single-task user interface focused solely on filtering images. Once all images have been selected or rejected, 
+then ingest them into the workspace. Next, it will hit the HumanSelection step, and launch a web based UI 
+with a single-task user interface focused solely on filtering images. Once all images have been filtered by a human, 
 it can move on to the next step.
 
 Each step along the way is cached, on an image-by-image basis. So if you run the workflow again, it will not need to
@@ -64,15 +67,17 @@ If you add new images to the source directory and run it again, only new images 
 for the others. If you change the workflow, the system will preserve as much work as possible, avoiding expensive 
 human-in-the-loop operations, or ML model invocations that have already been run.
 
-Significantly more complex workflows are possible, and beprepared is designed to support them. See EXAMPLES.md for 
-more examples.
+Significantly more complex workflows are possible, and beprepared is designed to support them. See 
+[EXAMPLES.md](EXAMPLES.md) for more examples.
 
 ## Limitations
 
-This project is meant for using a single compute node to prepare data sets for fine-tuning diffusion models. 
+This project is used to prepare data sets for fine-tuning diffusion models on a single compute node. Currently it
+supports only one GPU, but multi-GPU support is planned.
 
-It is not a goal of this project to prepare pre-training scale datasets with millions or billions of albums,
-or manage distributed compute.
+It is not a goal of this project to help people preparing pre-training datasets with millions or billions of images. 
+That would require a fundamentally more complex distributed architecture and would make it significantly more difficult
+for the community to work with and improve this tool.
 
 ## Roadmap
 
