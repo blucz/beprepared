@@ -7,11 +7,6 @@
 
 beprepared is an easy and efficient way to prepare high quality image datasets for diffusion model fine-tuning.
 
-This project is meant for using a single compute node to prepare data sets of up to 100,000 images. While larger 
-data sets are certainly possible and there is no hard limit enforced, beprepared is focusing on the problem that 
-most people fine-tuning diffusion models will encounter without worrying about building tools suitable for 
-preparing pre-training datasets that contain millions or billions of images.
-
 It is designed to facilitate both human and machine-driven data preparation work in a non-destructive environment
 that aggressively avoids duplication of effort, even as the data preparation workflow evolves. 
 
@@ -42,19 +37,19 @@ give up. beprepared is designed to break this cycle by making the data preparati
 
 With beprepared, you can define a simple workflow like this:
 
-  from beprepared import *
+      from beprepared import *
 
-  with Workspace("mydataset") as workspace:
-      (
-          Load("/path/to/dog_photos")
-          >> FilterBySize(min_edge=512)
-          >> HumanFilter
-          >> ConvertFormat("JPEG")
-          >> JoyCaptionAlphaOne(target_property='caption')
-          >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
-          >> Save
-      )
-      workspace.run()
+      with Workspace("mydataset") as workspace:
+          (
+              Load("/path/to/dog_photos")
+              >> FilterBySize(min_edge=512)
+              >> HumanFilter
+              >> ConvertFormat("JPEG")
+              >> JoyCaptionAlphaOne(target_property='caption')
+              >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
+              >> Save
+          )
+          workspace.run()
 
 When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
 then ingest them into the workspace. Next, we will hit the HumanSelection step, and it will launch a web based UI 
@@ -71,6 +66,13 @@ human-in-the-loop operations, or ML model invocations that have already been run
 
 Significantly more complex workflows are possible, and beprepared is designed to support them. See EXAMPLES.md for 
 more examples.
+
+## Limitations
+
+This project is meant for using a single compute node to prepare data sets for fine-tuning diffusion models. 
+
+It is not a goal of this project to prepare pre-training scale datasets with millions or billions of albums,
+or manage distributed compute.
 
 ## Roadmap
 
