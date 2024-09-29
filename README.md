@@ -10,7 +10,7 @@ beprepared is an easy and efficient way to prepare high quality image datasets f
 It is designed to facilitate both human and machine-driven data preparation work in a non-destructive environment
 that aggressively avoids duplication of effort, even as the data preparation workflow evolves. 
 
-# The Problem
+## The Problem
 
 A typical data prep workflow may look like this:
 
@@ -36,7 +36,7 @@ Humans are human. If the tooling is bad, the datasets will be bad. If the datase
 them will be bad. If the models are bad, the consumers of those models will make bad images, get frustrated, or 
 give up. beprepared is designed to break this cycle by making the data preparation process as friendly as possible.
 
-# Quick Example
+## Quick Example
 
 Install beprepared using poetry, then define a simple workflow like this: 
 
