@@ -1,5 +1,3 @@
-# beprepared!
-
 <p align="center">
   <img align="center" src="beprepared.jpg" width="460px" />
 </p>
