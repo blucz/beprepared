@@ -28,14 +28,17 @@ class WebInterface:
 
     def run(self):
         if self.static_files_path:
+            # Disable caching. It messes things up, because we end up mounting index.html from multiple
+            # nodes, and then they end up stepping on each other in the cache based on If-Modified-Since, since
+            # it is based on file timestamps
+            StaticFiles.is_not_modified = lambda self, *args, **kwargs: False
             self.app.mount("/", StaticFiles(directory=self.static_files_path, html=True), name="static")
         self.config = uvicorn.Config(self.app, host="0.0.0.0", port=self.port, log_level='debug' if self.debug else 'critical')
         self.server = uvicorn.Server(self.config)
 
-
         Workspace.current.log.info("-" * 80)
         Workspace.current.log.info("")
-        Workspace.current.log.info(f"{self.name} is running at http://localhost:{self.port}")
+        Workspace.current.log.info(f"{self.name} is running at http://0.0.0.0:{self.port}")
         Workspace.current.log.info("")
         Workspace.current.log.info("Open it up, and follow the instructions on the web page!") 
         Workspace.current.log.info("")

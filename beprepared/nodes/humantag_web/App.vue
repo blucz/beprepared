@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="bg-dark text-white">
     <div class="container text-center mb-4 pt-4">
-      <h1 v-if='!done'>Keep this image?</h1>
+      <h1 v-if='!done'>Tag this image</h1>
       <h1 v-else>You're All Done!</h1>
     </div>
 
@@ -36,7 +36,7 @@
 .tag {
   display: inline-block;
   padding: 0.2em 0.4em;
-  font-size: 3.0em;
+  font-size: 2.0em;
   color: #fff;
   background-color: #6c757d;
   border-radius: 0.2em;
@@ -82,9 +82,9 @@
   border: 1px solid #6c757d;
   flex-grow: 0;
   flex-shrink: 0;
-  width: calc(min(1080px, 100vw - 200px)); 
-  height: calc(min(1080px, 100vw - 200px)); 
-  max-width: 1080px;
+  width: calc(min(800px, 100vw - 200px)); 
+  height: calc(min(800px, 100vw - 200px)); 
+  max-width: 800px;
 }
 .x-of-y {
   text-align: center;

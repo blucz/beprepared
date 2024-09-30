@@ -1,8 +1,7 @@
 <template>
   <div id="app" class="bg-dark text-white">
     <div class="container text-center mb-4 pt-4">
-      <h1 v-if='!done'>Keep this image?</h1>
-      <h1 v-else>You're All Done!</h1>
+      <h1>Want to keep this image?</h1>
     </div>
 
     <div class='d-flex flex-row justify-content-stretch align-content-stretch align-items-stretch' style='padding:4px;'>
@@ -88,7 +87,7 @@
   color: #fff;
 }
 .accept-reject-button {
-  width: calc(min(1080px, 100vw - 200px) / 2.0 - 4px); 
+  width: calc(min(800px, 100vw - 200px) / 2.0 - 4px); 
   height: 80px;
   font-size: 150%;
   touch-action: manipulation;
@@ -102,9 +101,9 @@
   border: 1px solid #6c757d;
   flex-grow: 0;
   flex-shrink: 0;
-  width: calc(min(1080px, 100vw - 200px)); 
-  height: calc(min(1080px, 100vw - 200px)); 
-  max-width: 1080px;
+  width: calc(min(800px, 100vw - 200px)); 
+  height: calc(min(800px, 100vw - 200px)); 
+  max-width: 800px;
 }
 .x-of-y {
   text-align: center;
@@ -137,11 +136,11 @@ const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/images/$
 const imageBorderStyle = computed(() => {
   const status = imageStatuses.value[currentImage.value?.id];
   if (status === 'accepted') {
-    return 'border: 4px solid green; width: 100%; height: 100%; max-width: 1080px; max-height: 1080px; object-fit: contain';
+    return 'border: 4px solid green; width: 100%; height: 100%; max-width: 800px; max-height: 800px; object-fit: contain';
   } else if (status === 'rejected') {
-    return 'border: 4px solid red; width: 100%; height: 100%; max-width: 1080px; max-height: 1080px; object-fit: contain';
+    return 'border: 4px solid red; width: 100%; height: 100%; max-width: 800px; max-height: 800px; object-fit: contain';
   }
-  return 'border: 4px solid transparent; width: 100%; height: 100%; max-width: 1080px; max-height: 1080px; object-fit: contain';
+  return 'border: 4px solid transparent; width: 100%; height: 100%; max-width: 800px; max-height: 800px; object-fit: contain';
 });
 
 const loadImages = async () => {
