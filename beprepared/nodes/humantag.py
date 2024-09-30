@@ -73,7 +73,7 @@ class HumanTag(Node):
 
         @web.app.get("/images/{image_id}")
         def get_image_file(image_id: int):
-            image = needs_tag[image_id]
+            image,tags = needs_tag[image_id]
             if image is None:
                 return JSONResponse({"error": "Invalid image ID"}, status_code=400)
             image_path = self.workspace.get_path(image)
