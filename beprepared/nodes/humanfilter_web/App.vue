@@ -5,7 +5,7 @@
     </div>
 
     <div class='d-flex flex-row justify-content-stretch align-content-stretch align-items-stretch' style='padding:4px;'>
-        <div :style="{visibility: currentIndex > 0 ? 'visible' : 'hidden' }" @click="prevImage" class='left-right-button left-button'><i class="bi bi-arrow-left-circle"></i></div>
+        <div :style="{visibility: canGoPrevious ? 'visible' : 'hidden' }" @click="prevImage" class='left-right-button left-button'><i class="bi bi-arrow-left-circle"></i></div>
 
         <div v-if='!done' class='image-container p-4 rounded'>
           <img :src="currentImageSrc" class="rounded" :style="imageBorderStyle"/>
@@ -15,7 +15,7 @@
           <b>Click to Continue</b>
         </div>
 
-        <div :style="{ visibility: !done ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
+        <div :style="{ visibility: canGoNext ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
 
     </div>
 
@@ -126,12 +126,17 @@ const backend = baseUrl ? axios.create({ baseURL: import.meta.env.VITE_API_URL }
                         : axios.create();
 
 const images = ref([]);
+const canGoPrevious = computed(() => currentIndex.value > 0);
+const canGoNext = computed(() => 
+  !done.value && 
+  currentIndex.value < images.value.length - 1 && 
+  imageStatuses.value[images.value[currentIndex.value]?.id]);
 const currentIndex = ref(0);
 const imageStatuses = ref({}); // { id: 'accepted' | 'rejected' }
 const done = ref(false);
 
 const currentImage = computed(() => images.value[currentIndex.value]);
-const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/images/${currentImage.value.id}` : '');
+const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/objects/${currentImage.value.objectid}` : '');
 
 const imageBorderStyle = computed(() => {
   const status = imageStatuses.value[currentImage.value?.id];
@@ -178,6 +183,7 @@ const rejectImage = async () => {
 };
 
 const prevImage = () => {
+  if (!canGoPrevious.value) return;
   if (done.value) {
     done.value = false;
   } else if (currentIndex.value > 0) {
@@ -187,6 +193,7 @@ const prevImage = () => {
 };
 
 const nextImage = () => {
+  if (!canGoNext.value) return;
   if (currentIndex.value < images.value.length - 1) {
     currentIndex.value++;
   } else {
@@ -198,7 +205,7 @@ const nextImage = () => {
 const preload = () => {
   if (currentIndex.value < images.value.length - 1) {
     const img = new Image();
-    img.src = `${baseUrl}/images/${images.value[currentIndex.value + 1].id}`;
+    img.src = `${baseUrl}/objects/${images.value[currentIndex.value + 1].objectid}`;
   }
 };
 

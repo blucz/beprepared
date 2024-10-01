@@ -1,6 +1,6 @@
 import os
 from io import BytesIO
-from PIL import Image as PILImage
+from PIL import Image as PILImage, UnidentifiedImageError
 
 from beprepared.node import Node
 from beprepared.dataset import Dataset
@@ -32,26 +32,28 @@ class Load(Node):
         dataset = Dataset()
         ws = Workspace.current
         skipped = 0
+        import_count = 0
         for path in _find_images(self.dir):
             try:
                 original_path_prop = ConstProperty(path)
-                objectid_prop      = CachedProperty('sha256', [ path ])
+                objectid_prop      = CachedProperty('objectid', path)
                 did_import = False
                 if not objectid_prop.has_value:
                     bytes = open(path, 'rb').read()
-                    with PILImage.open(BytesIO(bytes)) as pil_image:
-                        if pil_image.format not in Image.ALLOWED_FORMATS:
-                            self.log.warning(f"Skipping {path} because it is not in the allowed formats")
-                            skipped += 1
-                            continue
-                        try:
+                    try:
+                        with PILImage.open(BytesIO(bytes)) as pil_image:
+                            if pil_image.format not in Image.ALLOWED_FORMATS:
+                                self.log.warning(f"Skipping {path} because it is not in the allowed formats")
+                                skipped += 1
+                                continue
                             pil_image.verify()
-                        except:
-                            self.log.warning(f"Skipping {path} because it is not a valid image")
-                            skipped += 1
-                            continue
-                    objectid_prop.value = ws.db.put_object(bytes)
+                    except:
+                        self.log.warning(f"Skipping {path} because it is not a valid image")
+                        skipped += 1
+                        continue
+                    objectid_prop.value = ws.db.put_object(path)
                     did_import = True
+                    import_count += 1
                 height_prop        = CachedProperty('height', objectid_prop.value)
                 width_prop         = CachedProperty('width',  objectid_prop.value)
                 format_prop        = CachedProperty('format', objectid_prop.value)
@@ -70,10 +72,10 @@ class Load(Node):
                     format=format_prop
                 )
                 if did_import:
-                    self.log.info(f"Loaded {path} ({image.width.value}x{image.height.value} {image.format.value})")
+                    self.log.info(f"Imported {path} ({image.width.value}x{image.height.value} {image.format.value})")
                 dataset.images.append(image)
             except:
                 self.log.exception(f"Error loading {path}")
                 skipped += 1
-        self.log.info(f"Loaded {len(dataset.images)} images, skipped {skipped}")
+        self.log.info(f"Loaded {len(dataset.images)} images, imported {import_count}, skipped {skipped}")
         return dataset

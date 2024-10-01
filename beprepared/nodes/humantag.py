@@ -64,20 +64,18 @@ class HumanTag(Node):
         # Map image IDs to images and properties
         @web.app.get("/api/images")
         def get_images():
-            images_data = [{"id": idx, "tags": tags} for idx,(version,tags) in enumerate(needs_tag)]
+            images_data = [{"id": idx, "tags": tags, "objectid": image.objectid.value} for idx,(version,tags) in enumerate(needs_tag)]
             return images_data
 
         @web.app.get("/api/tags")
         def get_images():
             return self.tags_with_layout
 
-        @web.app.get("/images/{image_id}")
-        def get_image_file(image_id: int):
-            image,tags = needs_tag[image_id]
-            if image is None:
-                return JSONResponse({"error": "Invalid image ID"}, status_code=400)
-            image_path = self.workspace.get_path(image)
-            return FileResponse(image_path)
+        @web.app.get("/objects/{object_id}")
+        def get_object(object_id: str):
+            path = self.workspace.get_object_path(object_id)
+            print("PATH", path)
+            return FileResponse(path)
 
         @web.app.post("/api/images/{image_id}")
         async def update_image(image_id: int, request: Request):

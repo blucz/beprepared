@@ -33,9 +33,9 @@ class Info(Node):
         if len(dataset.images) == 0:
             return
         max_length_of_propname = max(len(k) for image in dataset.images for k in image.props.keys())
-        last_was_multiline = False
         terminal_cols = shutil.get_terminal_size().columns 
         for image in dataset.images:
+            last_was_multiline = False
             print("-" * terminal_cols)
             for k,v in image.props.items():
                 if k.startswith('_') and not self.include_hidden:

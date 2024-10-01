@@ -1,4 +1,5 @@
 import os
+import shutil
 
 def copy_or_hardlink(src, dst):
     try:

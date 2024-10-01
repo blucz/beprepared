@@ -1,4 +1,5 @@
 import os
+import random
 
 from beprepared.node import Node
 from beprepared.properties import CachedProperty
@@ -15,34 +16,37 @@ class HumanFilter(Node):
 
     def eval(self, dataset):
         needs_filter = []
+        already_filtered_count = 0
         for image in dataset.images:
             image.passed_human_filter = CachedProperty('humanfilter', self.domain, image)
             if not image.passed_human_filter.has_value:
                 needs_filter.append(image)
+            else:
+                already_filtered_count += 1
 
         if len(needs_filter) == 0:
             self.log.info("All images already have been filtered, skipping")
             dataset.images = [image for image in dataset.images if image.passed_human_filter.value]
             return dataset
 
-        self.log.info(f"Filtering images using human filter for {len(needs_filter)} images")
+        self.log.info(f"Filtering images using human filter for {len(needs_filter)} images (already filtered: {already_filtered_count})")   
 
         web = WebInterface(name='HumanFilter',
-                           static_files_path=os.path.join(os.path.dirname(__file__), 'humanfilter_web', 'static'))
+                           static_files_path=os.path.join(os.path.dirname(__file__), 'humanfilter_web', 'static'), debug=True)
 
         # Map image IDs to images and properties
         @web.app.get("/api/images")
         def get_images():
-            images_data = [{"id": idx} for idx in range(len(needs_filter))]
+            images_data = [{"id": idx, "objectid": image.objectid.value } 
+                            for idx,image in enumerate(needs_filter)
+                            if not image.passed_human_filter.has_value]
+            random.shuffle(images_data)
             return images_data
 
-        @web.app.get("/images/{image_id}")
-        def get_image_file(image_id: int):
-            image = needs_filter[image_id]
-            if image is None:
-                return JSONResponse({"error": "Invalid image ID"}, status_code=400)
-            image_path = self.workspace.get_path(image)
-            return FileResponse(image_path)
+        @web.app.get("/objects/{object_id}")
+        def get_object(object_id: str):
+            path = self.workspace.get_object_path(object_id)
+            return FileResponse(path)
 
         @web.app.post("/api/images/{image_id}")
         async def update_image(image_id: int, request: Request):

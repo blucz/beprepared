@@ -57,7 +57,7 @@ class ConvertFormat(Node):
             if image._convert_format_hash.has_value:
                 newimage = image.with_props({
                     'format': ConstProperty(self.format),
-                    'sha256': image._convert_format_hash
+                    'objectid': image._convert_format_hash
                 })
                 mapping[image] = newimage
             else:
@@ -72,7 +72,7 @@ class ConvertFormat(Node):
             image._convert_format_hash.value = self.workspace.put_object(newbytes)
             newimage = image.with_props({
                 'format': ConstProperty(self.format),
-                'sha256': image._convert_format_hash
+                'objectid': image._convert_format_hash
             })
             mapping[image] = newimage
 

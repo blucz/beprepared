@@ -112,7 +112,7 @@ const currentIndex = ref(0);
 const done = ref(false);
 
 const currentImage = computed(() => images.value[currentIndex.value]);
-const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/images/${currentImage.value.id}` : '');
+const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/objects/${currentImage.value.objectid}` : '');
 
 const tagClicked = (tag) => {
   if (currentImage.value.tags.includes(tag)) {
@@ -165,7 +165,7 @@ const nextImage = () => {
 const preload = () => {
   if (currentIndex.value < images.value.length - 1) {
     const img = new Image();
-    img.src = `${baseUrl}/images/${images.value[currentIndex.value + 1].id}`;
+    img.src = `${baseUrl}/objects/${images.value[currentIndex.value + 1].objectid}`;
   }
 };
 

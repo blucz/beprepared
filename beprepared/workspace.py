@@ -16,6 +16,11 @@ class Database:
         self.path = path
         self.db = sqlite3.connect(os.path.join(path, 'db.sqlite3'))
 
+        # Make things faster
+        cursor = self.db.cursor()
+        cursor.execute('PRAGMA synchronous = NORMAL')
+        cursor.execute('PRAGMA journal_mode = WAL')
+
         self.initialize_schema()
 
     def initialize_schema(self):
@@ -165,6 +170,9 @@ class Workspace:
             Workspace.current = Workspace._active_workspaces[-1]
         else:
             Workspace.current = None
+
+    def get_object_path(self, hash: str) -> str:
+        return self.db.get_object_path(hash)
 
     def get_path(self, obj: Any): 
         return self.db.get_object_path(obj.objectid.value)
