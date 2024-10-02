@@ -29,6 +29,7 @@ pyaesthetics = "^0.0.8.9"
 scikit-learn = "^1.5.2"
 faiss-gpu = "^1.7.2"
 annoy = "^1.17.3"
+simple-aesthetics-predictor = "^0.1.2"
 
 
 [build-system]

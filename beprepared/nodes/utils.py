@@ -98,12 +98,13 @@ class Filter(Node):
 
 
 class Sorted(Node):
-    def __init__(self, key: Callable[Image, Any]):
+    def __init__(self, key: Callable[Image, Any], reverse: bool=False):
         super().__init__()
         self.key = key
+        self.reverse = reverse
 
     def eval(self, dataset):
-        dataset.images.sort(key=self.key)
+        dataset.images.sort(key=self.key, reverse=self.reverse)
         return dataset
 
 

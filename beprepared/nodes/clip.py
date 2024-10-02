@@ -47,7 +47,10 @@ class ClipEmbed(Node):
         
         if num_gpus > 1:
             clip_model = torch.nn.DataParallel(clip_model)
-        
+            get_image_features = clip_model.module.get_image_features
+        else:
+            get_image_features = clip_model.get_image_features
+
         try:
             clip_model = torch.compile(clip_model)
         except Exception as e:
@@ -57,12 +60,8 @@ class ClipEmbed(Node):
         def get_clip_embeddings_batch(images):
             inputs = clip_processor(images=images, return_tensors="pt", padding=True).to(device)
             with torch.no_grad():
-                image_features = clip_model.module.get_image_features(**inputs)
+                image_features = get_image_features(**inputs)
             return image_features.cpu().numpy()
-
-        # Function to open images using ThreadPoolExecutor
-        def open_images(image_objs):
-            return [Image.open(self.workspace.get_path(image)) for image in image_objs]
 
         with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
             for i in tqdm(range(0, len(needs_encoding), self.batch_size), desc="CLIP Embedding"):

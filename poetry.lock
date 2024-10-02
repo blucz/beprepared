@@ -3507,6 +3507,22 @@ test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=
 type = ["importlib-metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (==1.11.*)", "pytest-mypy"]
 
 [[package]]
+name = "simple-aesthetics-predictor"
+version = "0.1.2"
+description = ""
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "simple_aesthetics_predictor-0.1.2-py3-none-any.whl", hash = "sha256:d624abbea19118ab51b613f14bb608b0b811d42fb1240ae2a9224a676c1bf262"},
+    {file = "simple_aesthetics_predictor-0.1.2.tar.gz", hash = "sha256:7d992ffd643be35ee56d540f9bc4d6e54f3734d995fc145a17996d018b18cec3"},
+]
+
+[package.dependencies]
+torch = ">=1.0"
+torchvision = ">=0.2.1"
+transformers = ">=4.30.2,<5.0.0"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -4259,4 +4275,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.13"
-content-hash = "9baba4a1b6ffa6fdbd2d10345c57070fb331bc68a2be967f095c1bb2047ae758"
+content-hash = "68c2d08812ed49ce1ccdaf14749bd07a22af4d7df380e7e67a8eadaf1035bc1e"
