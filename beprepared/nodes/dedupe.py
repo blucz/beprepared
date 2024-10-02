@@ -60,8 +60,10 @@ class FuzzyDedupe(Node):
 
         prop = CachedProperty('fuzzy_dedupe', emb_hash)
         if prop.has_value:
-            self.log.info("FuzzyDedupe has already been run with the same embedding matrix, skipping")
+            self.log.info("FuzzyDedupe has already been run with the same embedding matrix")
+            old_images = len(dataset.images)
             dataset.images = [image for image in dataset.images if image.objectid.value in prop.value]
+            self.log.info(f"Kept {len(dataset.images)} images from {old_images}")
             return dataset
 
         d = embeddings.shape[1]  # Dimensionality of embeddings
