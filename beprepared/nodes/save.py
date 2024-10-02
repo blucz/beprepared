@@ -50,7 +50,7 @@ def generate_html(dst_path: str, images: List):
             image_filename = f"{os.path.basename(original_path)}_{objectid}{ext}"
             caption = image.caption.value if image.caption.has_value else ""
             f.write("<tr>\n")
-            f.write(f"<td><img src='{image_filename}' style='max-width:300px;'></td>\n")
+            f.write(f"<td><img src='{image_filename}' loading='lazy' style='max-width:300px;'></td>\n")
             f.write("<td style='padding: 8px'>\n")
 
             for k,v in image.props.items():

@@ -128,7 +128,7 @@ class FuzzyDedupe(Node):
                     width = image.width.value
                     height = image.height.value
                     format = image.format.value
-                    html_content += f'<li><img src="{img_path}" alt="Image {image.objectid.value}" style="max-width:400px; max-height:400px; object-fit:contain;">'
+                    html_content += f'<li><img src="{img_path}" loading="lazy" alt="Image {image.objectid.value}" style="max-width:400px; max-height:400px; object-fit:contain;">'
                     html_content += f"<br>{width}x{height} {format}</li>"
                 html_content += "</ul>"
             html_content += "</body></html>"

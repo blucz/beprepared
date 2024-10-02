@@ -13,7 +13,9 @@ from aesthetics_predictor import AestheticsPredictorV1
 from tqdm import tqdm
 
 class AestheticScore(Node):
-    '''Computes an aesthetic score for each image in the dataset using the simple aesthetics predictor model.'''
+    '''Computes an aesthetic score for each image in the dataset using the simple aesthetics predictor model.
+
+    This is most commonly combined with `Sort` and `Filter` nodes in order to select images based on their aesthetic score.'''
     def __init__(self, batch_size=256):
         super().__init__()
         self.batch_size = batch_size
@@ -46,7 +48,7 @@ class AestheticScore(Node):
                 return model(**inputs)
 
         with ThreadPoolExecutor(max_workers=self.batch_size) as executor:
-            for i in tqdm(range(0, len(needs_aesthetic_score), self.batch_size), desc="Aesthetic Score"):
+            for i in tqdm(range(0, len(needs_aesthetic_score), self.batch_size), desc="Computing Aesthetic Scores"):
                 batch_images = needs_aesthetic_score[i:i + self.batch_size]
                 batch_pilimages = list(executor.map(lambda img: Image.open(self.workspace.get_path(img)), batch_images))
                 batch_logits = infer_batch(batch_pilimages).logits.tolist()
