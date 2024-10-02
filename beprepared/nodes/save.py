@@ -60,6 +60,9 @@ def generate_html(dst_path: str, images: List):
                 value = v.value
                 if hasattr(value, 'show'):
                     s = f"<pre>{value.show()}</pre>"
+                elif isinstance(value, list) and len(value) > 100:
+                    tostr = lambda x: f'{x:.3f}' if isinstance(x, float) else str(x)
+                    s = f"[{', '.join(tostr(x) for x in (value[:25] + ['...'] + value[-25:]))}]"
                 else:
                     s = repr(value)
                 f.write(f"<p><strong>{k}</strong> {s}</p>\n")

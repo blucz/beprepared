@@ -7,6 +7,7 @@ from beprepared.dataset import Dataset
 from beprepared.image import Image
 from beprepared.workspace import Workspace
 from beprepared.properties import CachedProperty, ConstProperty
+from beprepared.utils import shorten_path
 
 def _find_images(directory):
     valid_extensions = {'.jpg', '.png', '.webp'}
@@ -43,12 +44,12 @@ class Load(Node):
                     try:
                         with PILImage.open(BytesIO(bytes)) as pil_image:
                             if pil_image.format not in Image.ALLOWED_FORMATS:
-                                self.log.warning(f"Skipping {path} because it is not in the allowed formats")
+                                self.log.warning(f"Skipping {shorten_path(path)} because it is not in the allowed formats")
                                 skipped += 1
                                 continue
                             pil_image.verify()
                     except:
-                        self.log.warning(f"Skipping {path} because it is not a valid image")
+                        self.log.warning(f"Skipping {shorten_path(path)} because it is not a valid image")
                         skipped += 1
                         continue
                     objectid_prop.value = ws.db.put_object(path)
@@ -72,10 +73,10 @@ class Load(Node):
                     format=format_prop
                 )
                 if did_import:
-                    self.log.info(f"Imported {path} ({image.width.value}x{image.height.value} {image.format.value})")
+                    self.log.info(f"Imported {shorten_path(path)} ({image.width.value}x{image.height.value} {image.format.value})")
                 dataset.images.append(image)
             except:
-                self.log.exception(f"Error loading {path}")
+                self.log.exception(f"Error loading {shorten_path(path)}")
                 skipped += 1
         self.log.info(f"Loaded {len(dataset.images)} images, imported {import_count}, skipped {skipped}")
         return dataset

@@ -44,6 +44,9 @@ class Info(Node):
                 value = v.value
                 if hasattr(value, 'show'):
                     s = value.show()
+                elif isinstance(value, list) and len(value) > 50:
+                    tostr = lambda x: f'{x:.3f}' if isinstance(x, float) else str(x)
+                    s = f"[{', '.join(tostr(x) for x in (value[:25] + ['...'] + value[-25:]))}]"
                 else:
                     s = repr(value)
                     propval_cols = max(40, terminal_cols - max_length_of_propname - 4)
