@@ -139,6 +139,10 @@ class DownloadCache:
         download_to_path(url, local_filename)
         return local_filename
 
+class Abort(Exception):
+    def __init__(self, message) -> None:
+        super().__init__(message)
+
 class Workspace:
     _active_workspaces = []
     current = None
@@ -149,6 +153,8 @@ class Workspace:
         self.db = Database(os.path.join(self.dir, '_beprepared'))
         self.nodes = []
         self.cache = DownloadCache()
+        self.tmp_dir = os.path.join(self.dir, 'tmp')
+        os.makedirs(self.tmp_dir, exist_ok=True)
 
         if logger:
             self.log = logger
@@ -184,7 +190,10 @@ class Workspace:
         return self.db.put_object(bytes_or_path)
 
     def run(self):
-        for node in self.nodes:
-            if len(node.sinks) == 0:
-                node()
+        try:
+            for node in self.nodes:
+                if len(node.sinks) == 0:
+                    node()
+        except Abort as e:
+            self.log.error(str(e))
 

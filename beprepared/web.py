@@ -23,8 +23,11 @@ class WebInterface:
 
         @self.app.post("/api/exit")
         async def exit_server():
-            self.server.should_exit = True
+            stop()
             return {"status": "exiting"}
+
+    def stop(self):
+        self.server.should_exit = True
 
     def run(self):
         if self.static_files_path:

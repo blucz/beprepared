@@ -126,7 +126,8 @@ const tagClicked = (tag) => {
 const loadImages = async () => {
   try {
     const response = await backend.get('/api/images');
-    images.value = response.data;
+    images.value = response.data.images;
+    currentIndex.value = response.data.start_index;
     if (images.value.length === 0) {
       done.value = true;
     }

@@ -9,10 +9,12 @@ import shutil
 import textwrap 
 
 class Concat(Node):
-    def __init__(self):
+    def __init__(self, *nodes):
         super().__init__()
+        for node in nodes:
+            node >> self
 
-    def eval(self, datasets: List[Dataset]) -> Dataset:
+    def eval(self, datasets) -> Dataset:
         dataset = Dataset()
         visited = set()
         for input_dataset in datasets:

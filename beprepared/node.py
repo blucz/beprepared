@@ -37,6 +37,13 @@ class Node:
         other.sources.append(self)
         return other
 
+    def __lshift__(self, other):
+        if type(other) is type:
+            other = other()
+        self.sources.append(other)
+        other.sinks.append(self)
+        return other
+
     def __call__(self, *args, **kwargs):
         datasets = [s().copy() for s in self.sources]
         params = inspect.signature(self.eval).parameters
