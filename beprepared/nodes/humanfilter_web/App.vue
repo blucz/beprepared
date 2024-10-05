@@ -12,14 +12,15 @@
           <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
         </div>
         <div v-else @click="exitServer" class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
-          <b>Click to Continue</b>
+          <b v-if='!exited'>Click to Continue the workflow</b>
+          <b v-else='!exited'>You can close this window</b>
         </div>
 
         <div :style="{ visibility: canGoNext ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
 
     </div>
 
-    <div class="d-flex justify-content-center mb-3 flex-row pt-2">
+    <div v-if='!exited' class="d-flex justify-content-center mb-3 flex-row pt-2">
       <button :disabled='done' @click="acceptImage" class="btn btn-success me-2 accept-reject-button">Accept</button>
       <button :disabled='done' @click="rejectImage" class="btn btn-danger accept-reject-button">Reject</button>
     </div>
@@ -126,14 +127,16 @@ const backend = baseUrl ? axios.create({ baseURL: import.meta.env.VITE_API_URL }
                         : axios.create();
 
 const images = ref([]);
-const canGoPrevious = computed(() => currentIndex.value > 0);
+const canGoPrevious = computed(() => currentIndex.value > 0 && !exited.value);
 const canGoNext = computed(() => 
   !done.value && 
-  currentIndex.value < images.value.length - 1 && 
+  !exited.value && 
+  currentIndex.value <= images.value.length - 1 && 
   imageStatuses.value[images.value[currentIndex.value]?.id]);
 const currentIndex = ref(0);
 const imageStatuses = ref({}); // { id: 'accepted' | 'rejected' }
 const done = ref(false);
+const exited = ref(false);
 
 const currentImage = computed(() => images.value[currentIndex.value]);
 const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/objects/${currentImage.value.objectid}` : '');
@@ -174,7 +177,12 @@ const acceptImage = async () => {
 const rejectImage = async () => {
   if (!currentImage.value) return;
   try {
-    backend.post(`/api/images/${currentImage.value.id}`, { action: 'reject' });
+    const response = backend.post(`/api/images/${currentImage.value.id}`, { action: 'reject' });
+    if (response.data.status == 'done') {
+      console.error('got done, exiting server')
+      exitServer();
+      return;
+    }
     imageStatuses.value[currentImage.value.id] = 'rejected';
     nextImage();
   } catch (error) {
@@ -210,7 +218,9 @@ const preload = () => {
 };
 
 const exitServer = async () => {
+  console.log("exitServer")
   await backend.post('/api/exit');
+  exited.value = true;
 };
 
 const handleKeydown = (event) => {

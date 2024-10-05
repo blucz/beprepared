@@ -6,7 +6,7 @@ from tqdm import tqdm
 from beprepared.node import Node
 from beprepared.workspace import Workspace
 from beprepared.image import Image
-from beprepared.properties import CachedProperty, ConstProperty
+from beprepared.properties import CachedProperty, ConstProperty, ComputedProperty
 
 from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
@@ -30,12 +30,12 @@ class HumanTagUi:
         # Map image IDs to images and properties
         @self.web.app.get("/api/images")
         def get_images():
-            with_tag    = [image for image,tags in self.images_to_tag if image.human_tags.has_value and image.human_tags.value['version'] == self.version]
-            without_tag = [image for image,tags in self.images_to_tag if not image.human_tags.has_value or image.human_tags.value['version'] != self.version]
+            with_tag    = [(image, tags) for image,tags in self.images_to_tag if image.human_tags.has_value and image.human_tags.value['version'] == self.version]
+            without_tag = [(image, tags) for image,tags in self.images_to_tag if not image.human_tags.has_value or image.human_tags.value['version'] != self.version]
             images = with_tag + without_tag 
             start_index = len(with_tag)
             images_data = {
-                'images': [{"id": idx, "tags": tags, "objectid": image.objectid.value} for idx,(image,tags) in enumerate(self.images_to_tag)],
+                'images': [{"id": idx, "tags": tags, "objectid": image.objectid.value} for idx,(image,tags) in enumerate(images)],
                 'start_index': start_index
             }
             return images_data
@@ -86,7 +86,8 @@ class HumanTag(Node):
                  domain: str = 'default', 
                  version = 1, 
                  tags: List[str] | List[List[str]] = [],
-                 target_prop: str = 'tags'):
+                 target_prop: str = 'tags',
+                 skip_ui=False):
         super().__init__()
         if len(tags) == 0:
             raise ValueError("At least one tag must be provided")
@@ -103,12 +104,14 @@ class HumanTag(Node):
             self.tags_with_layout = [tags]
         self.domain = domain
         self.version = version
+        self.skip_ui = skip_ui
 
     def eval(self, dataset):
         needs_tag = []
         tagged = []
         for image in dataset.images:
             image.human_tags = CachedProperty('humantag', self.domain, image)
+            image.tags       = ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else [])
             if not image.human_tags.has_value:
                 needs_tag.append((image, []))
             else:
@@ -118,12 +121,25 @@ class HumanTag(Node):
                 else:
                     needs_tag.append((image, data['tags']))
 
+        # Print a frequency count table by tag over all the images in tagged:
+        tag_freq = {}
+        for image,tags in tagged:
+            for tag in tags:
+                tag_freq[tag] = tag_freq.get(tag, 0) + 1
+        self.log.info("Tag frequency count:")
+        for tag in self.tags:
+            self.log.info(f"  {tag}: {tag_freq.get(tag, 0)}")
+
         if len(needs_tag) == 0:
             self.log.info("All images already have been tagged, skipping")
             dataset.images = [image for image in dataset.images if image.human_tags.value]
             return dataset
 
         self.log.info(f"Tagging images using human tag for {len(needs_tag)} images")
+
+        if self.skip_ui:
+            self.log.info("Skipping UI, some images were not tagged")
+            return dataset
 
         # Run webui with progress bar 
         progress_bar = tqdm(total=len(dataset.images), desc="Tagging images")

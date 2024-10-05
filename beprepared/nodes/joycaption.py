@@ -197,6 +197,9 @@ class JoyCaptionAlphaOne(Node):
         processed_images = []
         for image in input_images:
             img = image.resize((384, 384), Image.LANCZOS)
+            # convert 4-ch images to 3-ch
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
             pixel_values = TVF.pil_to_tensor(img).unsqueeze(0) / 255.0
             pixel_values = TVF.normalize(pixel_values, [0.5], [0.5])
             pixel_values = pixel_values.to('cuda')

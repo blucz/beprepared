@@ -22,6 +22,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 
 class HumanFilterUi:
+    '''Backend for the HumanFilter and SmartHumanFilter nodes. This class is not intended to be used directly.'''
     def __init__(self, images_to_filter, cb_filtered=lambda image: None):
         self.images_to_filter = images_to_filter
         self.cb_filtered = cb_filtered
@@ -71,7 +72,21 @@ class HumanFilterUi:
             self.web.stop()
 
 class HumanFilter(Node):
+    '''HumanFilter presents a web-based UI to enable a human to manually filter images for inclusion in a dataset.
+
+    This is most commonly used when scraped or automatically collected images are to be used, as quality is often variable and high quality
+    data is essential for good training results.
+
+    This UI enables a human to filter ~5k images in an hour or two, which is quite practical for an individual. If you have much larger data sets
+    consider using `SmartHumanFilter` instead. 
+    '''
+
     def __init__(self, domain: str = 'default'):
+        ''' Initialize a HumanFilter node
+
+        Parameters:
+        - domain: str = 'default' - Domain to use for caching the results. This interoperates with `SmartHumanFilter` domains. Most people should leave this as 'default' but if your workflow contains multiple HumanFilter steps in your workflow that use different filter criteria and may encounter the same images, you should assign a unique domain to each.
+        '''
         super().__init__()
         self.domain = domain
 
@@ -148,9 +163,30 @@ class SimpleMLP(nn.Module):
 
 
 class SmartHumanFilter(Node):
+    '''
+    **Experimental**
+
+    SmartHumanFilter uses machine learning to filter images. This is most useful for large datasets, at least 5,000 images, as you need a fairly large number 
+    of images per class (accepted/rejected) to train a high quality model. If you do not have enough images, just use HumanFilter instead. You'll get 100% 
+    accuracy with less time investment.
+
+    First, it presents the web-based "Human filter" UI until it has collected at minimum number images for each of the 'rejected' and 'accepted' classes.
+
+    Once it has collected those images, it trains a classifier model, that uses CLIP embeddings to predict image acceptance/rejection. 
+
+    Afterwards, it uses that model to predict results for the remaining images. If the model is not confident enough in its prediction, it will either 
+    reject the image, accept the image, or the web-based UI will be presented to a human to make the final decision.
+
+    This model is marked as **Experimental**. In test, we have achieved ~93% accuracy with this model, but since hand-labeling thousands of examples is time-consuming, we have not performed many tests.
+    We welcome feedback on how well this approach works for you.
+
+    With large data sets (e.g. 50k+ images), this model can save a massive amount of human effort at minimal cost to dataset quality.
+    '''
+
     def __init__(self, 
                  domain: str = 'default', 
                  model_version: str = 'v1',
+                 min_images: int = 5000,
                  min_per_class: int = 1000, 
                  learning_rate: float = 1e-3, 
                  batch_size: int = 128, 
@@ -160,6 +196,21 @@ class SmartHumanFilter(Node):
                  min_confidence: float = 0.7,
                  min_accuracy: float = 0.9,
                  when_uncertain: Literal['reject', ' accept', 'human'] = 'reject'):
+        ''' Initialize a SmartHumanFilter node
+        Parameters:
+        - domain: str = 'default' - Domain to use for caching the results. This interoperates with `HumanFilter` domains.
+        - model_version: str = 'v1' - Version for the model. Change this if you want to force the model to be re-trained.
+        - min_images: int = 5000 - Minimum number of images required to make SmartHumanFilter worthwhile. If you have less images, use HumanFilter instead.
+        - min_per_class: int = 1000 - Minimum number of images required for each class (accepted/rejected) before training the model.
+        - learning_rate: float = 1e-3 - Learning rate for the model training
+        - batch_size: int = 128 - Batch size for the model training
+        - epochs: int = 500 - Number of epochs for the model training
+        - patience: int = 20 - Patience for early stopping. If the validation accuracy does not improve for this many epochs, the training stops.
+        - dropout: float = 0.5 - Dropout rate for the model
+        - min_accuracy: float = 0.9 - Minimum accuracy required for the model to be considered good enough.
+        - min_confidence: float = 0.7 - Minimum confidence required for the model to accept the prediction. If the model is not confident enough, `when_uncertain` determines how the image is handled.
+        - when_uncertain: Literal['reject', ' accept', 'human'] = 'reject' - What to do when the model's predictions do not exceed `min_confidence`. 'reject' will reject the image and 'accept' will accept the image. If this is set to `human`, then the web interface will be presented to filter the uncertain images manually. If you have a large dataset, 'reject' is almost certainly the best choice, as including bad images is much more harmful than excluding good ones.
+        as '''
         super().__init__()
         self.domain = domain
         self.model_version = model_version
@@ -172,6 +223,7 @@ class SmartHumanFilter(Node):
         self.min_accuracy = min_accuracy
         self.min_confidence = min_confidence
         self.when_uncertain = when_uncertain
+        self.min_images = min_images
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     def get_training_data(self, dataset: Dataset):
@@ -335,7 +387,7 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
 
     
     def eval(self, dataset):
-        if len(dataset.images) < 5000:
+        if len(dataset.images) < self.min_images:
             raise Abort(f"SmartHumanFilter is not useful for small data sets, use HumanFilter instead. Dataset size: {len(dataset.images)}")
 
         if not all(image.clip.has_value for image in dataset.images):
@@ -441,3 +493,4 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
 
         return dataset
 
+__all__ = ['HumanFilter', 'SmartHumanFilter']

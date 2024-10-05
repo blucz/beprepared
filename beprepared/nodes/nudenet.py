@@ -1,10 +1,11 @@
 from nudenet import NudeDetector
 from typing import List
+from tqdm import tqdm
 
 from beprepared.node import Node
 from beprepared.workspace import Workspace
 from beprepared.dataset import Dataset
-from beprepared.properties import CachedProperty
+from beprepared.properties import CachedProperty, ComputedProperty
 
 class NudeNetDetections:
     NUDITY_LABELS = {
@@ -93,10 +94,14 @@ class NudeNet(Node):
 
             detector = NudeDetector()
 
-            results = detector.detect_batch(needs_detect_filenames)
-            for idx, image in enumerate(needs_detect):
-                image.nudenet.value = NudeNetDetections(results[idx], self.threshold)
+            batch_size = 128
+            for i in tqdm(range(0, len(needs_detect_filenames), batch_size), desc="NudeNet"):
+                batch = needs_detect_filenames[i:i + batch_size]
+                results = detector.detect_batch(batch)
+                for idx, image in enumerate(needs_detect[i:i + batch_size]):
+                    image.nudenet.value = NudeNetDetections(results[idx], self.threshold)
+
         for image in dataset.images:
-            image.has_nudity = image.nudenet.value.has_nudity()
+            image.has_nudity = ComputedProperty(lambda image: image.nudenet.value.has_nudity() if image.nudenet.has_value else None)
 
         return dataset

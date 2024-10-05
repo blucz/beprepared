@@ -17,7 +17,7 @@ class Property(Generic[T]):
     @property
     def value(self) -> T:
         if not self._has_value: 
-            raise Exception(f'Property {self} has no value')
+            return None
         return self._value
 
     @value.setter

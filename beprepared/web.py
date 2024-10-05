@@ -23,7 +23,7 @@ class WebInterface:
 
         @self.app.post("/api/exit")
         async def exit_server():
-            stop()
+            self.stop()
             return {"status": "exiting"}
 
     def stop(self):

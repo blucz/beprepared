@@ -20,7 +20,7 @@ class Save(Node):
             original_path  = image.original_path.value
             ext            = image.ext.value
             src_image_path = self.workspace.get_path(image)
-            dst_image_path = os.path.join(dst_path, f"{os.path.basename(original_path)}_{objectid}{ext}")
+            dst_image_path = os.path.join(dst_path, f"{os.path.basename(original_path[:100])}_{objectid}{ext}")
                 
             os.makedirs(os.path.dirname(dst_image_path), exist_ok=True)
             copy_or_hardlink(src_image_path, dst_image_path)
@@ -38,7 +38,7 @@ class Save(Node):
 def generate_html(dst_path: str, images: List):
     if len(images) == 0: return
 
-    html_path = os.path.join(dst_path, "dataset.html")
+    html_path = os.path.join(dst_path, "index.html")
     with open(html_path, 'w') as f:
         f.write("<html><head><title>Dataset</title></head><body>\n")
         f.write("<table border='1' style='width:100%; border-collapse: collapse;'>\n")
@@ -47,7 +47,7 @@ def generate_html(dst_path: str, images: List):
             objectid      = image.objectid.value
             original_path = image.original_path.value
             ext           = image.ext.value
-            image_filename = f"{os.path.basename(original_path)}_{objectid}{ext}"
+            image_filename = f"{os.path.basename(original_path[:100])}_{objectid}{ext}"
             caption = image.caption.value if image.caption.has_value else ""
             f.write("<tr>\n")
             f.write(f"<td><img src='{image_filename}' loading='lazy' style='max-width:300px;'></td>\n")

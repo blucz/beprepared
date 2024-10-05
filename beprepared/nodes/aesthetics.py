@@ -17,6 +17,10 @@ class AestheticScore(Node):
 
     This is most commonly combined with `Sort` and `Filter` nodes in order to select images based on their aesthetic score.'''
     def __init__(self, batch_size=256):
+        '''Create a new AestheticScore node.
+
+        Parameters:
+        - batch_size: The number of images to process in parallel. Larger batch sizes will use more memory but may be faster. Default is 256. If you are running out of memory, try reducing this value.'''
         super().__init__()
         self.batch_size = batch_size
 
