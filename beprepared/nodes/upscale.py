@@ -1,5 +1,6 @@
 from beprepared.node import Node
 from beprepared.dataset import Dataset
+from beprepared.workspace import Abort
 from beprepared.properties import CachedProperty, ConstProperty
 from tqdm import tqdm
 from PIL import Image
@@ -165,7 +166,7 @@ class Upscale(Node):
             elif self.method == UpscaleMethod.ESRGAN:
                 image._upscale_data.value = self.upscale_image_esrgan(image, self.min_edge)
             else:
-                raise ValueError(f"Unsupported upscaling method: {self.method}")
+                raise Abort(f"Unsupported upscaling method: {self.method}")
             mapping[image] = newimage(image)
 
         dataset.images = [mapping.get(image, image) for image in dataset.images]

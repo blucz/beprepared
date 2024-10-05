@@ -31,7 +31,7 @@ class ClipEmbed(Node):
     def eval(self, dataset):
         needs_encoding = []
         for image in dataset.images:
-            prop = CachedProperty('clip_embedding', ClipEmbed.model, image)
+            prop = CachedProperty('clip_embedding', ClipEmbed.MODEL, image)
             setattr(image, self.target_prop, prop)
             if not prop.has_value:
                 needs_encoding.append(image)
@@ -44,8 +44,8 @@ class ClipEmbed(Node):
         device = "cuda" if torch.cuda.is_available() else "cpu"  # Use GPU if available
         num_gpus = torch.cuda.device_count()
         
-        clip_model = CLIPModel.from_pretrained(ClipEmbed.model).to(device)
-        clip_processor = CLIPProcessor.from_pretrained(ClipEmbed.model)
+        clip_model = CLIPModel.from_pretrained(ClipEmbed.MODEL).to(device)
+        clip_processor = CLIPProcessor.from_pretrained(ClipEmbed.MODEL)
         
         if num_gpus > 1:
             clip_model = torch.nn.DataParallel(clip_model)

@@ -230,7 +230,7 @@ class SmartHumanFilter(Node):
     def get_training_data(self, dataset: Dataset):
         for image in dataset.images:
             if not image.clip.has_value:
-                raise Exception("SmartHumanFilter requires images to have clip embeddings. Run ClipEmbedding first.")
+                raise Abort("SmartHumanFilter requires images to have clip embeddings. Run ClipEmbedding first.")
 
         accepted_count = len([image for image in dataset.images if image.passed_human_filter.has_value and image.passed_human_filter.value])
         rejected_count = len([image for image in dataset.images if image.passed_human_filter.has_value and not image.passed_human_filter.value])
@@ -490,7 +490,7 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
                                 (image.passed_human_filter.has_value and image.passed_human_filter.value) or 
                                 (image.passed_smart_filter.has_value and image.passed_smart_filter.value)]
         else:
-            raise Exception(f"Invalid value for when_uncertain: {self.when_uncertain}")
+            raise Abort(f"Invalid value for when_uncertain in SmartHumanFilter: {self.when_uncertain}")
 
         return dataset
 

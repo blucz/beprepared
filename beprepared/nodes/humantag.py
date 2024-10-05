@@ -14,6 +14,18 @@ from typing import List
 
 from beprepared.web import WebInterface
 
+
+def get_tags(image):
+    if image.human_tags.has_value:
+        return image.human_tags.value.get('tags',[])
+    return []
+
+def get_rejected(image):
+    if image.human_tags.has_value:
+        return image.human_tags.value.get('rejected', False)
+    return False
+
+
 class HumanTagUi:
     '''HumanTagUi is a web interface for tagging images. It is used by the HumanTag node to allow users to tag images using a web interface.'''
     def __init__(self, version, tags_with_layout, tags, images_to_tag, cb_tagged=lambda image: None):
@@ -31,12 +43,12 @@ class HumanTagUi:
         # Map image IDs to images and properties
         @self.web.app.get("/api/images")
         def get_images():
-            with_tag    = [(image, tags) for image,tags in self.images_to_tag if image.human_tags.has_value and image.human_tags.value['version'] == self.version]
-            without_tag = [(image, tags) for image,tags in self.images_to_tag if not image.human_tags.has_value or image.human_tags.value['version'] != self.version]
+            with_tag    = [image for image in self.images_to_tag if image.human_tags.has_value and image.human_tags.value['version'] == self.version]
+            without_tag = [image for image in self.images_to_tag if not image.human_tags.has_value or image.human_tags.value['version'] != self.version]
             images = with_tag + without_tag 
             start_index = len(with_tag)
             images_data = {
-                'images': [{"id": idx, "tags": tags, "objectid": image.objectid.value} for idx,(image,tags) in enumerate(images)],
+                'images': [{"id": idx, "tags": get_tags(image), "rejected": get_rejected(image), "objectid": image.objectid.value} for idx,image in enumerate(images)],
                 'start_index': start_index
             }
             return images_data
@@ -59,10 +71,11 @@ class HumanTagUi:
             for tag in tags:
                 if tag not in self.tags:
                     return JSONResponse({"error": f"Invalid tag: {tag}"}, status_code=400)
-            image,_ = self.images_to_tag[image_id]
+            rejected = data.get('rejected', False)
+            image = self.images_to_tag[image_id]
             if image is None:
                 return JSONResponse({"error": "Invalid image ID"}, status_code=400)
-            image.human_tags.value = {'version': self.version, 'tags': tags}
+            image.human_tags.value = {'version': self.version, 'tags': tags, 'rejected': rejected}
             if self.cb_tagged(image):
                 return {"status": "done"}
             else:
@@ -102,7 +115,7 @@ class HumanTag(Node):
         '''
         super().__init__()
         if len(tags) == 0:
-            raise ValueError("At least one tag must be provided")
+            raise Abort("At least one tag must be provided in HumanTag")
         self.tags = []
         for item in tags:
             if isinstance(item, str):
@@ -125,18 +138,18 @@ class HumanTag(Node):
             image.human_tags = CachedProperty('humantag', self.domain, image)
             image.tags       = ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else [])
             if not image.human_tags.has_value:
-                needs_tag.append((image, []))
+                needs_tag.append(image)
             else:
                 data = image.human_tags.value
                 if data['version'] == self.version:
-                    tagged.append((image, data['tags']))
+                    tagged.append(image)
                 else:
-                    needs_tag.append((image, data['tags']))
+                    needs_tag.append(image)
 
         # Print a frequency count table by tag over all the images in tagged:
         tag_freq = {}
-        for image,tags in tagged:
-            for tag in tags:
+        for image in tagged:
+            for tag in get_tags(image):
                 tag_freq[tag] = tag_freq.get(tag, 0) + 1
         self.log.info("Tag frequency count:")
         for tag in self.tags:
@@ -144,7 +157,7 @@ class HumanTag(Node):
 
         if len(needs_tag) == 0:
             self.log.info("All images already have been tagged, skipping")
-            dataset.images = [image for image in dataset.images if image.human_tags.value]
+            dataset.images = [image for image in dataset.images if not get_rejected(image)]
             return dataset
 
         self.log.info(f"Tagging images using human tag for {len(needs_tag)} images")
@@ -170,6 +183,8 @@ class HumanTag(Node):
             existing_tags = image.tags.value if image.tags.has_value else []
             existing_tags = [tag for tag in existing_tags if tag not in self.tags]
             image.tags = ConstProperty(existing_tags + tags)
+
+        dataset.images = [image for image in dataset.images if not get_rejected(image)]
 
         return dataset
 

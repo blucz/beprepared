@@ -20,8 +20,12 @@ class Concat(Node):
 
     (Concat() << set_a << set_b << set_c) >> Save("output_dir")
     '''
-    def __init__(self):
-        '''Initializes the Concat node'''
+    def __init__(self, *nodes):
+        '''Initializes the Concat node
+
+        Args:
+            *nodes: The datasets to concatenate
+        '''
         super().__init__()
         for node in nodes:
             node >> self

@@ -6,23 +6,33 @@
     </div>
 
     <div class='d-flex flex-row justify-content-stretch align-content-stretch align-items-stretch' style='padding:4px;'>
-        <div :style="{visibility: currentIndex > 0 ? 'visible' : 'hidden' }" @click="prevImage" class='left-right-button left-button'><i class="bi bi-arrow-left-circle"></i></div>
+        <div :style="{visibility: canGoPrevious ? 'visible' : 'hidden' }" @click="prevImage" class='left-right-button left-button'><i class="bi bi-arrow-left-circle"></i></div>
 
         <div v-if='!done' class='image-container p-4 rounded'>
           <img :src="currentImageSrc" class="rounded main-image"/>
           <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
         </div>
         <div v-else @click="exitServer" class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
-          <b>Click to Continue</b>
+          <b v-if='!exited'>Click to continue the workflow</b>
+          <b v-else>Close this window</b>
         </div>
 
-        <div :style="{ visibility: !done ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
+        <div :style="{ visibility: canGoNext ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
     </div>
 
-    <div class='d-flex flex-column justify-content-center'>
+    <div class='d-flex flex-column justify-content-center' v-if='!exited'>
       <div v-for='tag_row in tag_layout' class='d-flex flex-row flex-wrap justify-content-center'>
         <div v-for='tag in tag_row' :class="[currentImage.tags.includes(tag) ? 'tag-active' : '', 'btn btn-secondary m-1 tag']" @click='tagClicked(tag)'>
           {{tag}}
+        </div>
+      </div>
+      <!-- for rejected, we want a button with a trash icon that looks liek a tag . If currentImage.rejected then it should be active, otherwise not. follow the same pattern as tags -->
+      <div v-if='currentImage' class='d-flex flex-row justify-content-center'>
+        <div v-if='currentImage.rejected' class='btn btn-danger m-1 tag reject-active' @click='rejectClicked()'>
+          <i class="bi bi-trash"></i>
+        </div>
+        <div v-else class='btn btn-danger m-1 tag' @click='rejectClicked()'>
+          <i class="bi bi-trash"></i>
         </div>
       </div>
     </div>
@@ -46,6 +56,10 @@
 }
 .tag-active {
   background-color: #007bff;
+  color: #fff;
+}
+.reject-active {
+  background-color: #dc3545;
   color: #fff;
 }
 .left-right-button {
@@ -113,6 +127,25 @@ const done = ref(false);
 
 const currentImage = computed(() => images.value[currentIndex.value]);
 const currentImageSrc = computed(() => currentImage.value ? `${baseUrl}/objects/${currentImage.value.objectid}` : '');
+const exited = ref(false);
+const canGoPrevious = computed(() => currentIndex.value > 0 && !exited.value);
+const canGoNext = computed(() => 
+  !done.value && 
+  !exited.value && 
+  currentIndex.value <= images.value.length - 1)
+
+const update = async (image) => {
+  try {
+    await backend.post(`/api/images/${image.id}`, { rejected: image.rejected, tags: image.tags });
+  } catch (error) {
+    console.error('Failed to update image:', error);
+  }
+};
+
+const rejectClicked = () => {
+  currentImage.value.rejected = !currentImage.value.rejected;
+  update(currentImage.value);
+};
 
 const tagClicked = (tag) => {
   if (currentImage.value.tags.includes(tag)) {
@@ -120,7 +153,7 @@ const tagClicked = (tag) => {
   } else {
     currentImage.value.tags.push(tag);
   }
-  backend.post(`/api/images/${currentImage.value.id}`, { tags: currentImage.value.tags });
+  update(currentImage.value);
 };
 
 const loadImages = async () => {
@@ -155,6 +188,9 @@ const prevImage = () => {
 };
 
 const nextImage = () => {
+  if (currentImage.value) {
+    update(currentImage.value);   // This is potentially questionable, as it commits "no tags" on next silently. It is likely the right thing to do, but could result in mistakes
+  }
   if (currentIndex.value < images.value.length - 1) {
     currentIndex.value++;
   } else {
@@ -172,6 +208,7 @@ const preload = () => {
 
 const exitServer = async () => {
   await backend.post('/api/exit');
+  exited.value = true;
 };
 
 const handleKeydown = (event) => {

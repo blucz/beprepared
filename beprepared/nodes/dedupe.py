@@ -1,5 +1,5 @@
 from beprepared.node import Node
-from beprepared.workspace import Workspace
+from beprepared.workspace import Abort
 from beprepared.dataset import Dataset
 from beprepared.properties import CachedProperty
 
@@ -63,7 +63,7 @@ class FuzzyDedupe(Node):
     def eval(self, dataset: Dataset) -> Dataset:
         for image in dataset.images:
             if not image.clip.has_value:
-                raise Exception("FuzzyDedupe requires images to have clip embeddings. Run ClipEmbedding first.")
+                raise Abort("FuzzyDedupe requires images to have clip embeddings. Run ClipEmbedding first.")
         self.log.info("Computing embeddings array")
         dataset.images.sort(key=lambda image: image.objectid.value)
         embeddings = np.array([image.clip.value for image in dataset.images], dtype='float32')

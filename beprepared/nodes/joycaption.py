@@ -202,7 +202,7 @@ class JoyCaptionAlphaOne(Node):
         for _ in input_images:
             prompt_key = (caption_type, caption_tone, isinstance(length, str), isinstance(length, int))
             if prompt_key not in CAPTION_TYPE_MAP:
-                raise ValueError(f"Invalid caption type: {prompt_key}")
+                raise Abort(f"Invalid caption type in JoyCaptionAlphaOne: {prompt_key}")
             prompt_str = CAPTION_TYPE_MAP[prompt_key][0].format(length=length, word_count=length)
             prompts.append(prompt_str)
 

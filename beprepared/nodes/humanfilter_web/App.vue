@@ -12,8 +12,8 @@
           <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
         </div>
         <div v-else @click="exitServer" class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
-          <b v-if='!exited'>Click to Continue the workflow</b>
-          <b v-else='!exited'>You can close this window</b>
+          <b v-if='!exited'>Click to continue the workflow</b>
+          <b v-else>Close this window</b>
         </div>
 
         <div :style="{ visibility: canGoNext ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
@@ -25,7 +25,7 @@
       <button :disabled='done' @click="rejectImage" class="btn btn-danger accept-reject-button">Reject</button>
     </div>
 
-    <div class="d-flex justify-content-center align-items-center flex-column hide-on-touch">
+    <div class="d-flex justify-content-center align-items-center flex-column hide-on-touch" v-if='!exited'>
       <div class="d-flex align-items-left flex-column">
         <div class="mb-1">
           Keyboard shortcuts
@@ -177,7 +177,8 @@ const acceptImage = async () => {
 const rejectImage = async () => {
   if (!currentImage.value) return;
   try {
-    const response = backend.post(`/api/images/${currentImage.value.id}`, { action: 'reject' });
+    const response = await backend.post(`/api/images/${currentImage.value.id}`, { action: 'reject' });
+    console.log(response)
     if (response.data.status == 'done') {
       console.error('got done, exiting server')
       exitServer();

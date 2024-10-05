@@ -1,10 +1,9 @@
 from beprepared.node import Node
 from beprepared.dataset import Dataset
+from beprepared.workspace import Abort
 from beprepared.properties import CachedProperty, ConstProperty
 from tqdm import tqdm
 from PIL import Image
-import numpy as np
-import cv2
 from io import BytesIO
 
 class DownscaleMethod:
@@ -100,7 +99,7 @@ class Downscale(Node):
             if self.method == DownscaleMethod.PIL:
                 image._downscale_data.value = self.downscale_image_pil(image, self.max_edge)
             else:
-                raise ValueError(f"Unsupported downscaling method: {self.method}")
+                raise Abort(f"Unsupported downscaling method in Downscale: {self.method}")
 
             mapping[image] = newimage(image)
 
