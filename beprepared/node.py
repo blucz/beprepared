@@ -42,7 +42,7 @@ class Node:
             other = other()
         self.sources.append(other)
         other.sinks.append(self)
-        return other
+        return self
 
     def __call__(self, *args, **kwargs):
         datasets = [s().copy() for s in self.sources]

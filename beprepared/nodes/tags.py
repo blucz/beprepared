@@ -4,7 +4,13 @@ from beprepared.dataset import Dataset
 from beprepared.properties import ConstProperty
 
 class AddTags(Node):
+    '''Adds tags to all images in a dataset'''
     def __init__(self, tags: str | List[str]):
+        '''Initializes the AddTags node
+
+        Args:
+            tags (str or List[str]): The tags to add to the images
+        '''
         super().__init__()
         if isinstance(tags, str):
             tags = [tags]
@@ -20,7 +26,13 @@ class AddTags(Node):
         return dataset
 
 class RemoveTags(Node):
+    '''Removes tags from all images in a dataset'''
     def __init__(self, tags: str | List[str]):
+        '''Initializes the RemoveTags node
+
+        Args:
+            tags (str or List[str]): The tags to remove from the images
+        '''
         super().__init__()
         if isinstance(tags, str):
             tags = [tags]
@@ -36,7 +48,13 @@ class RemoveTags(Node):
         return dataset
 
 class RewriteTags(Node):
+    '''Rewrites tags in all images in a dataset'''
     def __init__(self, mapping: Dict[str,str]):
+        '''Initializes the RewriteTags node
+
+        Args:
+            mapping (Dict[str,str]): A dictionary mapping old tags to new tags
+        '''
         super().__init__()
         self.mapping = mapping
 

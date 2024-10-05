@@ -13,6 +13,7 @@ from beprepared.nodes.convert_format import convert_image
 from qwen_vl_utils import process_vision_info
 
 class QwenVLCaption(Node):
+    '''Generates image captions using the Qwen 2 VL 7B model'''
     DEFAULT_PROMPT = """Describe the contents and style of this image."""
 
     def __init__(self,
@@ -20,6 +21,14 @@ class QwenVLCaption(Node):
                  prompt:         Optional[str] = None,
                  instructions:   Optional[str] = None,
                  batch_size:     int           = 3):
+        '''Initializes the QwenVLCaption node
+
+        Args:
+            target_prop (str): The property to store the caption in (default is 'caption')
+            prompt (str): The prompt to use for the Qwen 2 VL 7B model (read the code)
+            instructions (str): Additional instructions to include in the prompt
+            batch_size (int): The number of images to process in parallel. If you are running out of memory, try reducing this value.
+        '''
         super().__init__()
         self.target_prop  = target_prop
         self.prompt = prompt or self.DEFAULT_PROMPT

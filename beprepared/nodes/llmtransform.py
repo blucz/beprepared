@@ -7,7 +7,16 @@ import asyncio
 from litellm import acompletion
 
 class LLMCaptionTransform(Node):
+    '''Transforms image captions using a language model'''
     def __init__(self, model: str, prompt: Callable[[Image], str], target_prop: str, parallel: int = 8):
+        '''Initializes the LLMCaptionTransform node
+
+        Args:
+            model (str): The name of the language model to use
+            prompt (Callable[[Image], str]): A function that takes an image and returns a prompt for the language model
+            target_prop (str): The property to store the transformed caption in (default is 'caption')
+            parallel (int): The number of images to process in parallel
+        '''
         super().__init__()
         self.model = model
         self.prompt = prompt

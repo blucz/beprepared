@@ -16,6 +16,8 @@ class GPT4oCaptionResult(BaseModel):
     description: str
 
 class GPT4oCaption(Node):
+    '''Generates captions for images using GPT-4o'''
+
     DEFAULT_PROMPT = """
 Your task is to write a caption for this image in two styles:
 
@@ -32,6 +34,15 @@ In both cases, be sure to clearly describe any subjects of the image and their c
                  prompt: Optional[str] = None,
                  instructions: Optional[str] = None,
                  parallel: int = 8):
+        '''Initializes the GPT4oCaption node
+
+        Args:
+            target_prop (str): The property to store the caption in
+            caption_type (str): The type of caption to generate ('descriptive' or 'booru')
+            prompt (str): The prompt to use for the GPT-4o model (read the code)
+            instructions (str): Additional instructions to include in the built-in prompt
+            parallel (int): The number of images to process in parallel
+        '''
         super().__init__()
 
         self.parallel = parallel

@@ -15,6 +15,7 @@ from typing import List
 from beprepared.web import WebInterface
 
 class HumanTagUi:
+    '''HumanTagUi is a web interface for tagging images. It is used by the HumanTag node to allow users to tag images using a web interface.'''
     def __init__(self, version, tags_with_layout, tags, images_to_tag, cb_tagged=lambda image: None):
         self.images_to_tag = images_to_tag
         self.cb_tagged = cb_tagged
@@ -74,13 +75,15 @@ class HumanTagUi:
             self.web.stop()
 
 class HumanTag(Node):
-    '''Allows a human to manually attach a static set of tags to each image.
+    '''HumanTag is a node that allows you to tag images using a web interface.
       
-       Domain is used to separate different sets of tags. For example, you could have a domain for tags 
-       related to style and a domain for tags related to content.
+       The domain is used to separate different sets of tags. For example, you could have a domain for tags 
+       related to style and a domain for tags related to content. If you want to keep them separate, use 
+       different domains. Likewise, if you have multiple sets of images that use different tagging practices, 
+       you will want to use different domains.
 
        If the tag set evolves and you want to evaluate images again without losing work, increment the 
-       version number.
+       version number. This will cause the web interface to re-evaluate all images.
     '''
     def __init__(self, 
                  domain: str = 'default', 
@@ -88,6 +91,15 @@ class HumanTag(Node):
                  tags: List[str] | List[List[str]] = [],
                  target_prop: str = 'tags',
                  skip_ui=False):
+        '''Initializes the HumanTag node
+
+        Args:
+            domain (str): The domain to use for the tags
+            version (int): The version of the tags. Increment this to re-evaluate all images
+            tags (List[str] or List[List[str]]): The tags to use. If you provide a nested list, e.g. [['tag1', 'tag2'], ['tag3']], the tags will be grouped in the UI
+            target_prop (str): The property to store the tags in (default is 'tags')
+            skip_ui (bool): If True, the UI will be skipped. This is most useful on large data sets where you want to work on subsequent nodes without waiting for all images to be tagged.
+        '''
         super().__init__()
         if len(tags) == 0:
             raise ValueError("At least one tag must be provided")
@@ -160,3 +172,5 @@ class HumanTag(Node):
             image.tags = ConstProperty(existing_tags + tags)
 
         return dataset
+
+__all__ = [ 'HumanTag' ]

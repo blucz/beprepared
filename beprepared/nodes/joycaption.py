@@ -90,12 +90,24 @@ class ImageAdapter(nn.Module):
         return self.other_tokens(torch.tensor([2], device=self.other_tokens.weight.device)).squeeze(0)
 
 class JoyCaptionAlphaOne(Node):
+    '''Generates captions for images using the JoyCaption Alpha One model.
+
+    For more information on JoyCaption, see https://huggingface.co/spaces/fancyfeast/joy-caption-alpha-one.'''
     def __init__(self,
                  target_prop: str = 'caption',
                  caption_type: Literal['descriptive', 'stable_diffusion', 'booru'] = 'descriptive',
                  caption_tone: Literal['formal', 'informal'] = 'formal',
                  caption_length: Union[int, 'any'] = 'any',
                  batch_size: int = 4) -> None:
+        '''Initializes the JoyCaptionAlphaOne node
+
+        Args:
+            target_prop (str): The property to store the caption in (default is 'caption')
+            caption_type (str): The type of caption to generate ('descriptive', 'stable_diffusion', 'booru')
+            caption_tone (str): The tone of the caption ('formal' or 'informal')
+            caption_length (int | 'any'): The length of the caption, or 'any' for any length
+            batch_size (int): The number of images to process in parallel. If you are running out of memory, try reducing this value. Default is 4.
+        '''
         super().__init__()
         self.target_prop = target_prop
         self.caption_type = caption_type

@@ -7,12 +7,22 @@ import shutil
 import os
 
 class Save(Node):
+    '''Saves images and captions to a directory, following foo.jpg, foo.txt, bar.jpg, bar.txt, etc. Additionally, an `index.html` file is generated that displays the images and their properties for evaluation purposes.''' 
     def __init__(self, dir=None):
+        '''Initializes the Save node
+
+        Args:
+            dir (str): The directory to save the images to. Relative paths are computed relative to the workspace directory.
+        '''
         super().__init__()
         self.dir = dir or "output"
 
     def eval(self, dataset) -> Dataset:
-        dst_path = os.path.join(self.workspace.dir, self.dir)
+        # for relative path, we need to use os.path.join. For absolute, just use it 
+        if not os.path.isabs(self.dir):
+            self.dir = os.path.join(self.workspace.dir, self.dir)
+        else:
+            self.dir = self.dir
         shutil.rmtree(dst_path, ignore_errors=True)
 
         for image in dataset.images:
@@ -70,3 +80,5 @@ def generate_html(dst_path: str, images: List):
             f.write("</tr>\n")
         f.write("</table>\n")
         f.write("</body></html>")
+
+__all__ = ['Save']

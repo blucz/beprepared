@@ -74,8 +74,20 @@ class NudeNetDetections:
         return '\n'.join(segs)
 
 class NudeNet(Node):
+    '''The NudeNet node is used to detect nudity in images. 
+
+    This can be used to filter out adult content. It can also be used to avoid sending NSFW content to censored models. For example, you may elect to
+    use GPT4o to caption SFW images, but JoyCaption to caption NSFW images.
+
+    Nudenet is quick and not very resource intensive, but it achieves pretty accurate results.'''
+
     # TODO: support 640x640 model (see nudenet github)
     def __init__(self, threshold = 0.5):
+        '''Initializes the NudeNet node
+
+        Args:
+            threshold (float): The minimum confidence score for a label to be considered positive (default is 0.5)
+        '''
         super().__init__()
         self.threshold = threshold
 
@@ -105,3 +117,5 @@ class NudeNet(Node):
             image.has_nudity = ComputedProperty(lambda image: image.nudenet.value.has_nudity() if image.nudenet.has_value else None)
 
         return dataset
+
+__all__ = ['NudeNet']

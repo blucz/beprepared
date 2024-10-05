@@ -9,6 +9,7 @@ from beprepared.node import Node
 from beprepared.properties import CachedProperty, ComputedProperty
 
 class LlamaCaption(Node):
+    '''Generates image captions using the Llama 3.2 Vision 11B model'''
     DEFAULT_PROMPT = "Write 2-3 sentences that describe this image"
 
     def __init__(self,
@@ -16,6 +17,14 @@ class LlamaCaption(Node):
                  prompt: Optional[str] = None,
                  instructions: Optional[str] = None,
                  batch_size: int = 1):
+        '''Initializes the LlamaCaption node
+
+        Args:
+            target_prop (str): The property to store the caption in
+            prompt (str): The prompt to use for the Llama model (read the code)
+            instructions (str): Additional instructions to include in the prompt
+            batch_size (int): The number of images to process in parallel. If you are running out of memory, try reducing this value.
+        '''
         super().__init__()
         self.target_prop = target_prop
         self.prompt = prompt or self.DEFAULT_PROMPT

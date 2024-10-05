@@ -5,7 +5,19 @@ from typing import Callable, List
 
 
 class FilterBySize(Node):
+    '''Filters images based on their size. This node can be used to filter images based on their width, height, or edge length'''
+
     def __init__(self, min_width=None, min_height=None, min_edge=None, max_width=None, max_height=None, max_edge=None):
+        '''Initializes the FilterBySize node
+
+        Args:
+            min_width (int): The minimum width of the image
+            min_height (int): The minimum height of the image
+            min_edge (int): The minimum edge length of the image
+            max_width (int): The maximum width of the image
+            max_height (int): The maximum height of the image
+            max_edge (int): The maximum edge length of the image
+        '''
         super().__init__()
         self.min_width = min_width
         self.min_height = min_height

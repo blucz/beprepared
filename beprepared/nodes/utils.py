@@ -9,7 +9,18 @@ import shutil
 import textwrap 
 
 class Concat(Node):
-    def __init__(self, *nodes):
+    '''Concatenates multiple datasets into one.
+
+    Because Python operator overloading is limited, usage is as follows:
+
+    set_a = Load("dir_a")
+    set_b = Load("dir_b")
+    set_c = Load("dir_c")
+
+    (Concat() << set_a << set_b << set_c) >> Save("output_dir")
+    '''
+    def __init__(self):
+        '''Initializes the Concat node'''
         super().__init__()
         for node in nodes:
             node >> self
@@ -27,9 +38,17 @@ class Concat(Node):
         return dataset
 
 class Info(Node):
-    def __init__(self, include_hidden=False):
+    '''Prints information about images in a dataset to stdout. This can be useful for debugging small datasets. 
+
+    For larger datasets, the `Save` node generates an `index.html` file in the output directory, and this provides a better experience. '''
+    def __init__(self, include_hidden_properties=False):
+        '''Initializes the Info node
+
+        Args:
+            include_hidden_properties (bool): Whether to include hidden properties (default is False)
+        '''
         super().__init__()
-        self.include_hidden = include_hidden
+        self.include_hidden_properties = include_hidden_properties
 
     def eval(self, dataset) -> Dataset:
         if len(dataset.images) == 0:
@@ -40,7 +59,7 @@ class Info(Node):
             last_was_multiline = False
             print("-" * terminal_cols)
             for k,v in image.props.items():
-                if k.startswith('_') and not self.include_hidden:
+                if k.startswith('_') and not self.include_hidden_properties:
                     continue
                 if not v.has_value: continue
                 value = v.value
@@ -66,7 +85,13 @@ class Info(Node):
         return dataset
 
 class SetCaption(Node):
-    def __init__(self, caption):
+    '''Sets a caption for all images in a dataset'''
+    def __init__(self, caption: str):
+        '''Initializes the SetCaption node
+
+        Args:
+            caption (str): The caption to set for all images
+        '''
         super().__init__()
         self.caption = caption
 
@@ -77,7 +102,14 @@ class SetCaption(Node):
         return dataset
 
 class Take(Node):
+    '''Takes the first `n` images from a dataset'''
     def __init__(self, n: int, random: bool=False):
+        '''Initializes the Take node
+
+        Args:
+            n (int): The number of images to take
+            random (bool): Whether to take the images randomly (default is False)
+        '''
         super().__init__()
         self.n = n
         self.random = random
@@ -90,7 +122,13 @@ class Take(Node):
         return dataset
 
 class Filter(Node):
+    '''Filters images in a dataset based on a predicate'''
     def __init__(self, predicate: Callable[Image, bool]):
+        '''Initializes the Filter node
+
+        Args:
+            predicate (Callable[[Image], bool]): The predicate to filter images with
+        '''
         super().__init__()
         self.predicate = predicate  
 
@@ -100,7 +138,14 @@ class Filter(Node):
 
 
 class Sorted(Node):
+    '''Sorts images in a dataset based on a key'''
     def __init__(self, key: Callable[Image, Any], reverse: bool=False):
+        '''Initializes the Sorted node
+
+        Args:
+            key (Callable[[Image], Any]): The key to sort images by
+            reverse (bool): Whether to reverse the sort order (default is False)
+        '''
         super().__init__()
         self.key = key
         self.reverse = reverse
@@ -111,7 +156,9 @@ class Sorted(Node):
 
 
 class Shuffle(Node):
+    '''Shuffles images in a dataset'''
     def __init__(self):
+        '''Initializes the Shuffle node'''
         super().__init__()
 
     def eval(self, dataset):
@@ -119,7 +166,13 @@ class Shuffle(Node):
         return dataset
 
 class Map(Node):
+    '''Maps a function over all images in a dataset'''
     def __init__(self, func: Callable[Image, Image]):
+        '''Initializes the Map node
+
+        Args:
+            func (Callable[[Image], Image]): The function to map over images
+        '''
         super().__init__()
         self.func = func
 
@@ -128,7 +181,13 @@ class Map(Node):
         return dataset
 
 class Apply(Node):
+    '''Applies a function to all images in a dataset'''
     def __init__(self, func: Callable[Image, None]):
+        '''Initializes the Apply node
+
+        Args:
+            func (Callable[[Image], None]): The function to apply to images
+        '''
         super().__init__()
         self.func = func
 
@@ -138,7 +197,13 @@ class Apply(Node):
         return dataset
 
 class Set(Node):
+    '''Sets a property on all images in a dataset'''
     def __init__(self, **kwargs):
+        '''Initializes the Set node
+
+        Args:
+            **kwargs: The properties to set on the images
+        '''
         super().__init__()
         self.props = kwargs
 

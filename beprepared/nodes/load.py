@@ -19,7 +19,18 @@ def _find_images(directory):
                 yield os.path.join(dirpath, filename)
 
 class Load(Node):
-    def __init__(self, dir):
+    '''Loads images from a directory. Images are walked on each workflow run, so new images can be added to the directory and picked up on the next run.
+
+    This node assumes that images are immutable once they are in the workspace. If an image is modified after having its sha256 cached, we will not pick up the change.
+
+    If you plan to modify images, change their filenames. We may add an option in the future to pick up changes automatically, but it could have significant performance 
+    impact, especially for large datasets. Since most images are scraped from the web or generated, we think this is a reasonable tradeoff.'''
+    def __init__(self, dir: str):
+        '''Initializes the Load node
+
+        Args:
+            dir (str): The directory to load images from
+        '''
         super().__init__()
         self.dir = dir
 

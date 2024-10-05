@@ -45,6 +45,7 @@ class EosLogitProcessor(LogitsProcessor):
 
 
 class XGenMMCaption(Node):
+    '''Generates image captions using the xGen-mm model (aka BLIP3)'''
     DEFAULT_PROMPT = """Your task is to write a caption for this image. Be sure to clearly describe any subjects of the image and their characteristics and position within the image. Also describe aspects of the background, lighting, style, and quality if those details are apparent. """.strip()
 
     def __init__(self,
@@ -52,6 +53,14 @@ class XGenMMCaption(Node):
                  prompt:         Optional[str] = None,
                  instructions:   Optional[str] = None,
                  batch_size:     int           = 4):
+        '''Initializes the XGenMMCaption node
+
+        Args:
+            target_prop (str): The property to store the caption in (default is 'caption')
+            prompt (str): The prompt to use for the xGen-mm model (read the code)
+            instructions (str): Additional instructions to include in the prompt
+            batch_size (int): The number of images to process in parallel. If you are running out of memory, try reducing this value.
+        '''
         super().__init__()
         self.target_prop  = target_prop
         self.prompt = prompt or self.DEFAULT_PROMPT
