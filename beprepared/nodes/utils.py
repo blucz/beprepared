@@ -2,6 +2,7 @@ from beprepared.properties import ConstProperty
 from beprepared.node import Node
 from beprepared.dataset import Dataset
 from beprepared.image import Image
+from beprepared.workspace import Abort
 
 from typing import List, Any, Callable
 import random
@@ -215,3 +216,18 @@ class Set(Node):
                 else:
                     setattr(image, k, ConstProperty(v))
         return dataset
+
+
+class Fail(Node):
+    '''Fails with an error message'''
+    def __init__(self, message: str = "error"):
+        '''Initializes the Fail node
+
+        Args:
+            message (str): The error message to fail with
+        '''
+        super().__init__()
+        self.message = message
+
+    def eval(self, dataset):
+        raise Abort(self.message)
