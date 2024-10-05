@@ -10,26 +10,28 @@ import torch
 from transformers import CLIPProcessor, CLIPModel
 from tqdm import tqdm
 
-class ClipModel:
-    DEFAULT                    = 'openai/clip-vit-large-patch14'
-    CLIP_VIT_LARGE_PATCH14     = 'openai/clip-vit-large-patch14'
-    CLIP_VIT_LARGE_PATCH14_336 = 'openai/clip-vit-large-patch14-336'
-    CLIP_VIT_BASE_PATCH16      = 'openai/clip-vit-base-patch16'
-    CLIP_VIT_BASE_PATCH32      = 'openai/clip-vit-base-patch32'
-
 class ClipEmbed(Node):
-    DEFAULT_MODEL = 'openai/clip-vit-large-patch14'
+    '''Computes CLIP embeddings for each image in the dataset using the CLIP model.
+
+    Many of the other nodes depend on CLIP embeddings to work properly, and will error out if CLIP embeddings are not computed.
+
+    CLIP embedding is quite fast on most GPUs and well worth it, as it unlocks a lot of functionality.'''
+    MODEL = 'openai/clip-vit-large-patch14'
     
-    def __init__(self, model: str = ClipModel.DEFAULT, batch_size=128, target_prop='clip'):
+    def __init__(self, batch_size=128, target_prop='clip'):
+        '''Create a new ClipEmbed node.
+
+        Args:
+            batch_size (int): The number of images to process in parallel. Larger batch sizes will use more memory but may be faster. Default is 128. If you are running out of memory, try reducing this value.
+        '''
         super().__init__()
-        self.model = model
         self.batch_size = batch_size
         self.target_prop = target_prop
 
     def eval(self, dataset):
         needs_encoding = []
         for image in dataset.images:
-            prop = CachedProperty('clip_embedding', self.model, image)
+            prop = CachedProperty('clip_embedding', ClipEmbed.model, image)
             setattr(image, self.target_prop, prop)
             if not prop.has_value:
                 needs_encoding.append(image)
@@ -42,8 +44,8 @@ class ClipEmbed(Node):
         device = "cuda" if torch.cuda.is_available() else "cpu"  # Use GPU if available
         num_gpus = torch.cuda.device_count()
         
-        clip_model = CLIPModel.from_pretrained(self.model).to(device)
-        clip_processor = CLIPProcessor.from_pretrained(self.model)
+        clip_model = CLIPModel.from_pretrained(ClipEmbed.model).to(device)
+        clip_processor = CLIPProcessor.from_pretrained(ClipEmbed.model)
         
         if num_gpus > 1:
             clip_model = torch.nn.DataParallel(clip_model)

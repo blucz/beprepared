@@ -11,7 +11,16 @@ class DownscaleMethod:
     PIL    = "PIL"
 
 class Downscale(Node):
+    '''Downscales images to a specified maximum edge length'''
+
     def __init__(self, method=DownscaleMethod.PIL, max_edge=1024, format='PNG'):
+        '''Initializes the Downscale node
+
+        Args:
+            method (str): The method to use for downscaling (e.g., 'PIL')
+            max_edge (int): The maximum edge length for the downscaling
+            format (str): The format to save the downscaled images in (e.g., 'PNG', 'JPEG')
+        '''
         super().__init__()
         self.max_edge = max_edge
         self.method   = method 

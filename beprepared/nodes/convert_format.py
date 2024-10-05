@@ -42,8 +42,14 @@ def convert_image(input_image_path, output_format):
     return converted_data
 
 class ConvertFormat(Node):
+    '''Converts images to a specified format'''
+
     def __init__(self, format: str):
-        '''format is a PIL image format, 'JPEG', 'PNG', 'WEBP', etc'''
+        '''Initializes the ConvertFormat node
+
+        Args:
+            format (str): The format to convert the images to (e.g., 'PNG', 'JPEG', 'WEBP')
+        '''
         super().__init__()
         self.format = format
 

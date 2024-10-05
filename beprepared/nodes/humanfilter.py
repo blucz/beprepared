@@ -84,8 +84,8 @@ class HumanFilter(Node):
     def __init__(self, domain: str = 'default'):
         ''' Initialize a HumanFilter node
 
-        Parameters:
-        - domain: str = 'default' - Domain to use for caching the results. This interoperates with `SmartHumanFilter` domains. Most people should leave this as 'default' but if your workflow contains multiple HumanFilter steps in your workflow that use different filter criteria and may encounter the same images, you should assign a unique domain to each.
+        Args:
+        - domain (str): Domain to use for caching the results. This interoperates with `SmartHumanFilter` domains. Most people should leave this as 'default' but if your workflow contains multiple HumanFilter steps in your workflow that use different filter criteria and may encounter the same images, you should assign a unique domain to each.
         '''
         super().__init__()
         self.domain = domain
@@ -197,19 +197,20 @@ class SmartHumanFilter(Node):
                  min_accuracy: float = 0.9,
                  when_uncertain: Literal['reject', ' accept', 'human'] = 'reject'):
         ''' Initialize a SmartHumanFilter node
-        Parameters:
-        - domain: str = 'default' - Domain to use for caching the results. This interoperates with `HumanFilter` domains.
-        - model_version: str = 'v1' - Version for the model. Change this if you want to force the model to be re-trained.
-        - min_images: int = 5000 - Minimum number of images required to make SmartHumanFilter worthwhile. If you have less images, use HumanFilter instead.
-        - min_per_class: int = 1000 - Minimum number of images required for each class (accepted/rejected) before training the model.
-        - learning_rate: float = 1e-3 - Learning rate for the model training
-        - batch_size: int = 128 - Batch size for the model training
-        - epochs: int = 500 - Number of epochs for the model training
-        - patience: int = 20 - Patience for early stopping. If the validation accuracy does not improve for this many epochs, the training stops.
-        - dropout: float = 0.5 - Dropout rate for the model
-        - min_accuracy: float = 0.9 - Minimum accuracy required for the model to be considered good enough.
-        - min_confidence: float = 0.7 - Minimum confidence required for the model to accept the prediction. If the model is not confident enough, `when_uncertain` determines how the image is handled.
-        - when_uncertain: Literal['reject', ' accept', 'human'] = 'reject' - What to do when the model's predictions do not exceed `min_confidence`. 'reject' will reject the image and 'accept' will accept the image. If this is set to `human`, then the web interface will be presented to filter the uncertain images manually. If you have a large dataset, 'reject' is almost certainly the best choice, as including bad images is much more harmful than excluding good ones.
+        Args:
+
+        - domain (str)= 'default' - Domain to use for caching the results. This interoperates with `HumanFilter` domains.
+        - model_version (str): str = 'v1' - Version for the model. Change this if you want to force the model to be re-trained.
+        - min_images (int) = 5000 - Minimum number of images required to make SmartHumanFilter worthwhile. If you have less images, use HumanFilter instead.
+        - min_per_class (int) = 1000 - Minimum number of images required for each class (accepted/rejected) before training the model.
+        - learning_rate (float) = 1e-3 - Learning rate for the model training
+        - batch_size (int) = 128 - Batch size for the model training
+        - epochs (int) = 500 - Number of epochs for the model training
+        - patience (int) = 20 - Patience for early stopping. If the validation accuracy does not improve for this many epochs, the training stops.
+        - dropout (float) = 0.5 - Dropout rate for the model
+        - min_accuracy (float) = 0.9 - Minimum accuracy required for the model to be considered good enough.
+        - min_confidence (float) = 0.7 - Minimum confidence required for the model to accept the prediction. If the model is not confident enough, `when_uncertain` determines how the image is handled.
+        - when_uncertain ('reject' | ' accept' | 'human') = 'reject' - What to do when the model's predictions do not exceed `min_confidence`. 'reject' will reject the image and 'accept' will accept the image. If this is set to `human`, then the web interface will be presented to filter the uncertain images manually. If you have a large dataset, 'reject' is almost certainly the best choice, as including bad images is much more harmful than excluding good ones.
         as '''
         super().__init__()
         self.domain = domain

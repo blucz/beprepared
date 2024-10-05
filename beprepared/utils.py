@@ -11,12 +11,12 @@ def shorten_path(path, max_length=60):
     """
     Shorten a file path to a maximum length by inserting an ellipsis in the middle if needed.
 
-    Parameters:
-    - path (str): The original file path.
-    - max_length (int): The maximum allowed length of the shortened path.
+    Args:
+        path (str): The original file path.
+        max_length (int): The maximum allowed length of the shortened path.
 
     Returns:
-    - str: The shortened file path with an ellipsis in the middle if necessary.
+        str: The shortened file path with an ellipsis in the middle if necessary.
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")

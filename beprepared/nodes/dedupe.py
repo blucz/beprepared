@@ -10,8 +10,10 @@ from pathlib import Path
 import hashlib
 
 class ExactDedupe(Node):
-    '''Deduplicates images based on their SHA256 hash. This is extremely fast and simple, but does not catch perceptually similar images. If that is a priority, try `FuzzyDedupe` instead.'''
+    '''Deduplicates images based on their SHA256 hash. This is extremely fast and simple, but does not catch perceptually similar images. If that is a priority, try `FuzzyDedupe` instead, or better yet
+    use both in sequence.'''
     def __init__(self):
+        '''Create a new ExactDedupe node.'''
         super().__init__()
 
     def eval(self, dataset: Dataset) -> Dataset:
@@ -38,10 +40,20 @@ class UnionFind:
             self.parent[py] = px
 
 class FuzzyDedupe(Node):
-    '''Deduplicates images based on perceptual similarity. This process uses clip embeddings and an ANN (approximate nearest neighbors) index to find groups of images that are within `threshold` cosine similarity of each other. You can monitor the clusters by setting `debug_html` to a path where an HTML file will be saved with the images in each cluster.
+    '''Deduplicates images based on perceptual similarity. 
 
-    The n_trees and n_neighbors parameters control the accuracy and speed of the ANN index. Higher values will be more accurate but slower. The default values are usually good enough for most cases.'''   
+    This process uses clip embeddings and an ANN (approximate nearest neighbors) index to find groups of images that are within `threshold` cosine similarity of each other. You can monitor the clusters by setting `debug_html` to a path where an HTML file will be saved with the images in each cluster.
+
+    The n_trees and n_neighbors parameters control the accuracy and speed of the ANN index. Higher values will be more accurate but slower. The default values are usually good enough for most cases.
+    '''
     def __init__(self, threshold: float = 0.975, debug_html='fuzzy_dedupe.html', n_trees: int = 10, n_neighbors: int = 50):
+        '''Create a new FuzzyDedupe node.
+
+        Args:
+        - threshold (float): The cosine similarity threshold for images to be considered duplicates. Default is 0.975.
+        - debug_html (str): If set, an HTML file will be saved with the images in each cluster for quality monitoring. Default is 'fuzzy_dedupe.html'.
+        - n_trees (int): The number of trees to build in the Annoy index. Higher values are more accurate but slower. Default is 10. 
+        - n_neighbors (int): The number of neighbors to search for in the Annoy index. Higher values are more accurate but slower. Default is 50.'''
         super().__init__()
         self.threshold = threshold
         self.debug_html = debug_html

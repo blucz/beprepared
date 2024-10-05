@@ -17,7 +17,17 @@ class UpscaleMethod:
     ESRGAN = "ESRGAN"
 
 class Upscale(Node):
+    '''Upscales images to a specified minimum edge length'''
     def __init__(self, method=UpscaleMethod.PIL, min_edge=1024, format='PNG'):
+        '''Initializes the Upscale node
+
+        Args:
+            method (str): The method to use for upscaling (e.g., 'PIL', 'ESRGAN')
+            min_edge (int): The minimum edge length for the upscaling
+            format (str): The format to save the upscaled images in (e.g., 'PNG', 'JPEG')
+
+        **NOTE: The ESRGAN method is currently broken due to a bug in basicsr.**
+        '''
         super().__init__()
         self.min_edge = min_edge
         self.method   = method 
