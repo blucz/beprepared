@@ -3,6 +3,7 @@ from beprepared.node import Node
 from beprepared.dataset import Dataset
 from beprepared.image import Image
 from beprepared.workspace import Abort
+import numpy as np
 
 from typing import List, Any, Callable
 import random
@@ -68,7 +69,9 @@ class Info(Node):
                     continue
                 if not v.has_value: continue
                 value = v.value
-                if hasattr(value, 'show'):
+                if isinstance(value, np.ndarray):
+                    s = np.array2string(value, threshold=50)
+                elif hasattr(value, 'show'):
                     s = value.show()
                 elif isinstance(value, list) and len(value) > 50:
                     tostr = lambda x: f'{x:.3f}' if isinstance(x, float) else str(x)

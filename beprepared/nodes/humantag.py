@@ -37,8 +37,7 @@ class HumanTagUi:
 
     def run(self):
         self.web = WebInterface(name='HumanTag',
-                           static_files_path=os.path.join(os.path.dirname(__file__), 'humantag_web', 'static'),
-                           debug=True)
+                                static_files_path=os.path.join(os.path.dirname(__file__), 'humantag_web', 'static'))
 
         # Map image IDs to images and properties
         @self.web.app.get("/api/images")
@@ -100,6 +99,7 @@ class HumanTag(Node):
     '''
     def __init__(self, 
                  domain: str = 'default', 
+                 filter_domain: str = 'default', 
                  version = 1, 
                  tags: List[str] | List[List[str]] = [],
                  target_prop: str = 'tags',
@@ -134,9 +134,12 @@ class HumanTag(Node):
     def eval(self, dataset):
         needs_tag = []
         tagged = []
+
         for image in dataset.images:
             image.human_tags = CachedProperty('humantag', self.domain, image)
             image.tags       = ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else [])
+
+        for image in dataset.images:
             if not image.human_tags.has_value:
                 needs_tag.append(image)
             else:

@@ -62,6 +62,9 @@ class NudeNetDetections:
             if detection['class'] == label and detection['score'] >= self.threshold:
                 return True
 
+    def to_json(self):
+        return self.detections
+
     def show(self):
         segs = []
         if len(self.detections) == 0: 

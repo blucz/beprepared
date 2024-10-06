@@ -5,8 +5,16 @@ import inspect
 import logging
 import time
 
+class NodeMeta(type):
+    '''This metaclass enables workflow DSL patterns like `Concat << a << b << c` without requiring `Concat() << a << b << c`.'''
+    def __rshift__(cls, other):
+        obj = cls()
+        return obj >> other
+    def __lshift__(cls, other):
+        obj = cls()
+        return obj << other
 
-class Node:
+class Node(metaclass=NodeMeta):
     def __init__(self) -> None:
         self.sources = []
         self.sinks = []
@@ -31,14 +39,14 @@ class Node:
         return self.sources[0]
 
     def __rshift__(self, other):
-        if type(other) is type:  # Allow classes with 0-arg constructors to omit ()
+        if isinstance(other, type):
             other = other()
         self.sinks.append(other)
         other.sources.append(self)
         return other
 
     def __lshift__(self, other):
-        if type(other) is type:
+        if isinstance(other, type):
             other = other()
         self.sources.append(other)
         other.sinks.append(self)

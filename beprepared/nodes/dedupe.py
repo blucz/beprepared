@@ -46,11 +46,11 @@ class FuzzyDedupe(Node):
 
     The n_trees and n_neighbors parameters control the accuracy and speed of the ANN index. Higher values will be more accurate but slower. The default values are usually good enough for most cases.
     '''
-    def __init__(self, threshold: float = 0.975, debug_html='fuzzy_dedupe.html', n_trees: int = 10, n_neighbors: int = 50):
+    def __init__(self, threshold: float = 0.95, debug_html='fuzzy_dedupe.html', n_trees: int = 10, n_neighbors: int = 50):
         '''Create a new FuzzyDedupe node.
 
         Args:
-        - threshold (float): The cosine similarity threshold for images to be considered duplicates. Default is 0.975.
+        - threshold (float): The cosine similarity threshold for images to be considered duplicates. Default is 0.95.
         - debug_html (str): If set, an HTML file will be saved with the images in each cluster for quality monitoring. Default is 'fuzzy_dedupe.html'.
         - n_trees (int): The number of trees to build in the Annoy index. Higher values are more accurate but slower. Default is 10. 
         - n_neighbors (int): The number of neighbors to search for in the Annoy index. Higher values are more accurate but slower. Default is 50.'''
@@ -70,7 +70,13 @@ class FuzzyDedupe(Node):
 
         emb_hash = hashlib.sha256(embeddings.tobytes()).hexdigest()
 
-        prop = CachedProperty('fuzzy_dedupe', emb_hash)
+        params = {
+            'threshold': self.threshold,
+            'n_trees': self.n_trees,
+            'n_neighbors': self.n_neighbors,
+        }
+
+        prop = CachedProperty('fuzzy_dedupe', 'v1', params, emb_hash)
         if prop.has_value:
             self.log.info("FuzzyDedupe has already been run with the same embedding matrix")
             old_images = len(dataset.images)

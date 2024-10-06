@@ -67,6 +67,10 @@ class Database:
             return None
         return pickle.loads(val[0])
 
+    def has_prop(self, cachekey: str) -> bool:
+        cursor = self.db.cursor()
+        return cursor.execute('SELECT 1 FROM property_cache WHERE key = ?', (cachekey,)).fetchone() is not None 
+
     def put_prop(self, cachekey: str, value: Any) -> None:
         cursor = self.db.cursor()
         cursor.execute('''

@@ -6,6 +6,7 @@ from beprepared.node import Node
 from beprepared.properties import CachedProperty
 from PIL import Image
 import torch
+import numpy as np
 
 from transformers import CLIPProcessor, CLIPModel
 from tqdm import tqdm
@@ -72,7 +73,9 @@ class ClipEmbed(Node):
                 embeddings = get_clip_embeddings_batch(pil_images)
                 for image, embedding in zip(batch_images, embeddings):
                     prop = getattr(image, self.target_prop)
-                    prop.value = embedding.tolist()
+                    if not isinstance(embedding, np.ndarray):   # sanity check, should be fine.
+                        raise ValueError(f"Expected embedding to be a numpy array, but got {type(embedding)}")
+                    prop.value = embedding
 
         return dataset
 

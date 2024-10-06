@@ -223,6 +223,12 @@ const handleKeydown = (event) => {
     case 'D':
       nextImage();
       break;
+    case 'ArrowDown':
+    case 's':
+    case 'S':
+      rejectClicked();
+      if (canGoNext.value) nextImage();
+      break;
   }
 };
 

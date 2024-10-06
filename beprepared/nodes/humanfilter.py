@@ -342,7 +342,7 @@ class SmartHumanFilter(Node):
                     self.log.info("Early stopping triggered.")
                     break
 
-        model.load_state_dict(torch.load(model_path))
+        model.load_state_dict(torch.load(model_path, weights_only=True))
         return model, model_path
 
     def eval_model(self, model, loader):
@@ -412,7 +412,7 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
         if prop_model.has_value:
             model_file = Workspace.current.get_object_path(prop_model.value)
             model = SimpleMLP(input_size=embedding_size, dropout=self.dropout)
-            model.load_state_dict(torch.load(model_file))
+            model.load_state_dict(torch.load(model_file, weights_only=True))
             model.to(self.device)
         else:
             embeddings, labels = self.get_training_data(dataset)
