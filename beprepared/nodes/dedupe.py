@@ -64,7 +64,7 @@ class FuzzyDedupe(Node):
         for image in dataset.images:
             if not image.clip.has_value:
                 raise Abort("FuzzyDedupe requires images to have clip embeddings. Run ClipEmbedding first.")
-        self.log.info("Computing embeddings array")
+        self.log.info("Building embedding matrix")
         dataset.images.sort(key=lambda image: image.objectid.value)
         embeddings = np.array([image.clip.value for image in dataset.images], dtype='float32')
 

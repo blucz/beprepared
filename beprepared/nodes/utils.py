@@ -13,13 +13,13 @@ import textwrap
 class Concat(Node):
     '''Concatenates multiple datasets into one.
 
-    Because Python operator overloading is limited, usage is as follows:
+    Because Python operator overloading is limited, typical usage is as follows:
 
     set_a = Load("dir_a")
     set_b = Load("dir_b")
     set_c = Load("dir_c")
 
-    (Concat() << set_a << set_b << set_c) >> Save("output_dir")
+    (Concat << set_a << set_b << set_c) >> Save("output_dir")
     '''
     def __init__(self, *nodes):
         '''Initializes the Concat node
@@ -67,7 +67,8 @@ class Info(Node):
             for k,v in image.props.items():
                 if k.startswith('_') and not self.include_hidden_properties:
                     continue
-                if not v.has_value: continue
+                if not v.has_value: 
+                    continue
                 value = v.value
                 if isinstance(value, np.ndarray):
                     s = np.array2string(value, threshold=50)
@@ -110,21 +111,28 @@ class SetCaption(Node):
         return dataset
 
 class Take(Node):
-    '''Takes the first `n` images from a dataset'''
-    def __init__(self, n: int, random: bool=False):
+    '''Takes the `n` images from a dataset. By default, takes the first N, unless you enable `random`. 
+       Setting `random` + `seed` allows you to repeatedly sample the same items, which can be useful for 
+       taste-testing processing steps on a small subset of a large dataset before paying the time/cost of 
+       processing the whole thing.'''
+    def __init__(self, n: int, random: bool=False, seed: int=None):
         '''Initializes the Take node
 
         Args:
             n (int): The number of images to take
             random (bool): Whether to take the images randomly (default is False)
+            seed (int): The seed to use for random sampling (default is None)
         '''
         super().__init__()
         self.n = n
         self.random = random
+        self.seed = seed
 
     def eval(self, dataset):
         if self.random:
-            dataset.images = random.sample(dataset.images, self.n)
+            rng = random.Random()
+            rng.seed(self.seed)
+            dataset.images = rng.sample(dataset.images, self.n)
         else:
             dataset.images = dataset.images[:self.n]
         return dataset
@@ -226,7 +234,7 @@ class Set(Node):
 
 
 class Fail(Node):
-    '''Fails with an error message'''
+    '''Fails with an error message. This can be useful if you want to interrupt a pipeline before it finishes, or for incomplete work.'''
     def __init__(self, message: str = "error"):
         '''Initializes the Fail node
 

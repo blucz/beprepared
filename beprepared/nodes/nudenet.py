@@ -109,12 +109,13 @@ class NudeNet(Node):
 
             detector = NudeDetector()
 
-            batch_size = 128
-            for i in tqdm(range(0, len(needs_detect_filenames), batch_size), desc="NudeNet"):
-                batch = needs_detect_filenames[i:i + batch_size]
-                results = detector.detect_batch(batch)
-                for idx, image in enumerate(needs_detect[i:i + batch_size]):
-                    image.nudenet.value = NudeNetDetections(results[idx], self.threshold)
+            if len(needs_detect_filenames) > 0:
+                batch_size = 128
+                for i in tqdm(range(0, len(needs_detect_filenames), batch_size), desc="NudeNet"):
+                    batch = needs_detect_filenames[i:i + batch_size]
+                    results = detector.detect_batch(batch)
+                    for idx, image in enumerate(needs_detect[i:i + batch_size]):
+                        image.nudenet.value = NudeNetDetections(results[idx], self.threshold)
 
         for image in dataset.images:
             image.has_nudity = ComputedProperty(lambda image: image.nudenet.value.has_nudity() if image.nudenet.has_value else None)

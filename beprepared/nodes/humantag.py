@@ -174,7 +174,7 @@ class HumanTag(Node):
         progress_bar.n = len(tagged)
         progress_bar.refresh()
         def image_tagged(image: Image):
-            progress_bar.n += 1
+            progress_bar.n = len([img for img in dataset.images if img.human_tags.has_value and img.human_tags.value['version'] == self.version])
             progress_bar.refresh()
         HumanTagUi(self.version, self.tags_with_layout, self.tags, tagged + needs_tag, cb_tagged=image_tagged).run()
         progress_bar.close()

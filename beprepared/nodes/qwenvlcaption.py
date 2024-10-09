@@ -20,7 +20,7 @@ class QwenVLCaption(Node):
                  target_prop:    str                              = 'caption',
                  prompt:         Optional[str] = None,
                  instructions:   Optional[str] = None,
-                 batch_size:     int           = 3):
+                 batch_size:     int           = 1):
         '''Initializes the QwenVLCaption node
 
         Args:
