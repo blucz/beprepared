@@ -7,14 +7,16 @@ from beprepared.logging import configure_default_logger
 import hashlib
 from tqdm import tqdm
 import requests
+import threading
+from beprepared.web import WebInterface
 
 from typing import List, Dict, Callable, Any, TypeVar, Generic
 
 class Database:
     def __init__(self, path) -> None:
         os.makedirs(path, exist_ok=True)
+        self.tls_db = threading.local()
         self.path = path
-        self.db = sqlite3.connect(os.path.join(path, 'db.sqlite3'))
 
         # Make things faster
         cursor = self.db.cursor()
@@ -22,6 +24,12 @@ class Database:
         cursor.execute('PRAGMA journal_mode = WAL')
 
         self.initialize_schema()
+
+    @property
+    def db(self):
+        if not hasattr(self.tls_db, 'db'):
+            self.tls_db.db = sqlite3.connect(os.path.join(self.path, 'db.sqlite3'))
+        return self.tls_db.db
 
     def initialize_schema(self):
         cursor = self.db.cursor()
@@ -158,12 +166,15 @@ class Workspace:
         self.nodes = []
         self.cache = DownloadCache()
         self.tmp_dir = os.path.join(self.dir, 'tmp')
+
         os.makedirs(self.tmp_dir, exist_ok=True)
 
         if logger:
             self.log = logger
         else:
             self.log = configure_default_logger()
+
+        self.web = WebInterface(self.log, debug=False)
 
     def __enter__(self):
         Workspace._active_workspaces.append(self)
@@ -194,6 +205,8 @@ class Workspace:
         return self.db.put_object(bytes_or_path)
 
     def run(self):
+        # start web interface
+        self.web.start()
         try:
             for node in self.nodes:
                 if len(node.sinks) == 0:

@@ -4,6 +4,7 @@ import random
 from tqdm import tqdm
 
 from beprepared.node import Node
+from beprepared.web import Applet
 from beprepared.workspace import Workspace
 from beprepared.image import Image
 from beprepared.properties import CachedProperty, ConstProperty, ComputedProperty
@@ -25,22 +26,18 @@ def get_rejected(image):
         return image.human_tags.value.get('rejected', False)
     return False
 
-
-class HumanTagUi:
-    '''HumanTagUi is a web interface for tagging images. It is used by the HumanTag node to allow users to tag images using a web interface.'''
+class HumanTagApplet(Applet):
+    '''HumanTagApplet is a web interface for tagging images. It is used by the HumanTag node to allow users to tag images using a web interface.'''
     def __init__(self, version, tags_with_layout, tags, images_to_tag, cb_tagged=lambda image: None):
+        super().__init__('humantag', 'HumanTag', os.path.join(os.path.dirname(__file__), 'humantag_web', 'static'))
         self.images_to_tag = images_to_tag
         self.cb_tagged = cb_tagged
         self.version = version
         self.tags_with_layout = tags_with_layout
         self.tags = tags
 
-    def run(self):
-        self.web = WebInterface(name='HumanTag',
-                                static_files_path=os.path.join(os.path.dirname(__file__), 'humantag_web', 'static'))
-
         # Map image IDs to images and properties
-        @self.web.app.get("/api/images")
+        @self.app.get("/api/images")
         def get_images():
             with_tag    = [image for image in self.images_to_tag if image.human_tags.has_value and image.human_tags.value['version'] == self.version]
             without_tag = [image for image in self.images_to_tag if not image.human_tags.has_value or image.human_tags.value['version'] != self.version]
@@ -52,16 +49,16 @@ class HumanTagUi:
             }
             return images_data
 
-        @self.web.app.get("/api/tags")
+        @self.app.get("/api/tags")
         def get_images():
             return self.tags_with_layout
 
-        @self.web.app.get("/objects/{object_id}")
+        @self.app.get("/objects/{object_id}")
         def get_object(object_id: str):
             path = Workspace.current.get_object_path(object_id)
             return FileResponse(path)
 
-        @self.web.app.post("/api/images/{image_id}")
+        @self.app.post("/api/images/{image_id}")
         async def update_image(image_id: int, request: Request):
             data = await request.json()
             tags = data.get('tags') 
@@ -79,12 +76,6 @@ class HumanTagUi:
                 return {"status": "done"}
             else:
                 return {"status": "ok"}
-
-        self.web.run()
-
-    def stop(self):
-        if self.web: 
-            self.web.stop()
 
 class HumanTag(Node):
     '''HumanTag is a node that allows you to tag images using a web interface.
@@ -176,7 +167,8 @@ class HumanTag(Node):
         def image_tagged(image: Image):
             progress_bar.n = len([img for img in dataset.images if img.human_tags.has_value and img.human_tags.value['version'] == self.version])
             progress_bar.refresh()
-        HumanTagUi(self.version, self.tags_with_layout, self.tags, tagged + needs_tag, cb_tagged=image_tagged).run()
+        applet = HumanTagApplet(self.version, self.tags_with_layout, self.tags, tagged + needs_tag, cb_tagged=image_tagged)
+        applet.run(self.workspace)
         progress_bar.close()
 
         # Apply tag based on results from web interface

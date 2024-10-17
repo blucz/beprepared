@@ -1,7 +1,7 @@
 {
-  "name": "human-filter-vue",
+  "name": "human-tag-vue",
   "version": "1.0.0",
-  "description": "A simple Vue app for human filtering of images.",
+  "description": "A simple Vue app for human tagging of images.",
   "main": "index.html",
   "scripts": {
     "dev": "vite",

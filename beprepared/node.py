@@ -72,9 +72,11 @@ class Node(metaclass=NodeMeta):
                 f"The eval method for {self.__class__.__name__} must take either `source` or `sources` as an argument."
             )
 
+        self.workspace.web.connect_log(self.__class__.__name__, self.log)
         self.log.info("Start")
         start_time = time.perf_counter()
         ret = evalfn()
         end_time = time.perf_counter()
         self.log.info(f"Finished in {end_time - start_time:.2f}s")
+        self.workspace.web.disconnect_log(self.__class__.__name__, self.log)
         return ret

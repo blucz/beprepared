@@ -16,23 +16,21 @@ from beprepared.node import Node
 from beprepared.dataset import Dataset
 from beprepared.properties import CachedProperty
 from beprepared.web import WebInterface
+from beprepared.web import Applet
 from typing import Literal
 
 from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 
-class HumanFilterUi:
+class HumanFilterApplet(Applet):
     '''Backend for the HumanFilter and SmartHumanFilter nodes. This class is not intended to be used directly.'''
     def __init__(self, images_to_filter, cb_filtered=lambda image: None):
+        super().__init__('humanfilter', 'HumanFilter', os.path.join(os.path.dirname(__file__), 'humanfilter_web', 'static'))
         self.images_to_filter = images_to_filter
         self.cb_filtered = cb_filtered
 
-    def run(self):
-        self.web = WebInterface(name='HumanFilter',
-                           static_files_path=os.path.join(os.path.dirname(__file__), 'humanfilter_web', 'static'))
-
         # Map image IDs to images and properties
-        @self.web.app.get("/api/images")
+        @self.app.get("/api/images")
         def get_images():
             images_data = [{"id": idx, "objectid": image.objectid.value } 
                             for idx,image in enumerate(self.images_to_filter)
@@ -40,12 +38,12 @@ class HumanFilterUi:
             random.shuffle(images_data)
             return images_data
 
-        @self.web.app.get("/objects/{object_id}")
+        @self.app.get("/objects/{object_id}")
         def get_object(object_id: str):
             path = Workspace.current.get_object_path(object_id)
             return FileResponse(path)
 
-        @self.web.app.post("/api/images/{image_id}")
+        @self.app.post("/api/images/{image_id}")
         async def update_image(image_id: int, request: Request):
             data = await request.json()
             action = data.get('action')
@@ -64,12 +62,6 @@ class HumanFilterUi:
                 return {"status": "done"}
             else:
                 return {"status": "ok"}
-
-        self.web.run()
-
-    def stop(self):
-        if self.web: 
-            self.web.stop()
 
 class HumanFilter(Node):
     '''HumanFilter presents a web-based UI to enable a human to manually filter images for inclusion in a dataset.
@@ -120,7 +112,8 @@ class HumanFilter(Node):
             progress_bar.n += 1
             progress_bar.set_description(desc())
             progress_bar.refresh()
-        HumanFilterUi(images_to_filter, cb_filtered=image_filtered).run()
+        applet = HumanFilterApplet(images_to_filter, cb_filtered=image_filtered)
+        applet.run(self.workspace)
         progress_bar.close()
 
         total_count    = len(dataset.images)

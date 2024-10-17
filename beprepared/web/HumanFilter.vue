@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="bg-dark text-white h-100 w-100">
     <div class="container text-center mb-4 pt-4">
-      <h1 @click='testclick'>Want to keep this image? {{test}}</h1>
+      <h1>Want to keep this image?</h1>
     </div>
 
     <div class='d-flex flex-row justify-content-stretch align-content-stretch align-items-stretch' style='padding:4px;'>
@@ -11,9 +11,8 @@
           <img :src="currentImageSrc" class="rounded" :style="imageBorderStyle"/>
           <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
         </div>
-        <div v-else @click="close" class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
-          <b v-if='!exited'>Click to continue the workflow</b>
-          <b v-else>Close this window</b>
+        <div v-else class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
+          <button v-if='!exited' class='btn btn-primary btn-lg' @click='close'>Continue to next step</button>
         </div>
 
         <div :style="{ visibility: canGoNext ? 'visible' : 'hidden' }" @click="nextImage" class='left-right-button right-button'><i class="bi bi-arrow-right-circle"></i></div>
@@ -117,26 +116,19 @@
 </style>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, defineProps } from 'vue';
 import axios from 'axios';
 
 console.log(import.meta.env);
 
 const props = defineProps({
-  apiPath: {
-    type: String,
-    required: true
-  },
-  close: {
-    type: Function,
-    required: true
-  },
+  apiPath: { type: String, required: true },
 });
+const emit = defineEmits(['close']);
 
 const baseURL = (import.meta.env.VITE_API_URL ?? '') + (props.apiPath??'');
 const backend = axios.create({ baseURL })
 
-const test = ref("foo")
 const images = ref([]);
 const canGoPrevious = computed(() => currentIndex.value > 0 && !exited.value);
 const canGoNext = computed(() => 
@@ -233,7 +225,7 @@ const preload = () => {
 const close = async () => {
   console.log("close")
   exited.value = true;
-  props.close();
+  emit('close');
 };
 
 const handleKeydown = (event) => {
@@ -261,14 +253,8 @@ const handleKeydown = (event) => {
   }
 };
 
-const testclick = () => {
-  console.log("testclickkkk")
-  test.value = "baz";
-}
-
 onMounted(() => {
   loadImages();
-  test.value = "bar";
   window.addEventListener('keydown', handleKeydown);
 });
 

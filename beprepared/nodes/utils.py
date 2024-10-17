@@ -4,6 +4,8 @@ from beprepared.dataset import Dataset
 from beprepared.image import Image
 from beprepared.workspace import Abort
 import numpy as np
+from tqdm import tqdm
+import time
 
 from typing import List, Any, Callable
 import random
@@ -46,7 +48,7 @@ class Concat(Node):
 class Info(Node):
     '''Prints information about images in a dataset to stdout. This can be useful for debugging small datasets. 
 
-    For larger datasets, the `Save` node generates an `index.html` file in the output directory, and this provides a better experience. '''
+    For larger datasets, the `Save` node generates an `index.html` file in the output directory which can be loaded in a web browser to see the dataset more easily.'''
     def __init__(self, include_hidden_properties=False):
         '''Initializes the Info node
 
@@ -246,3 +248,25 @@ class Fail(Node):
 
     def eval(self, dataset):
         raise Abort(self.message)
+
+class Sleep(Node):
+    '''Sleeps for some amount of time'''
+    def __init__(self, seconds: float):
+        '''Initializes the Sleep node
+
+        Args:
+            seconds (float): The number of seconds to sleep
+        '''
+        super().__init__()
+        self.seconds = seconds
+
+    def eval(self, dataset):
+        if self.seconds < 1:
+            time.sleep(self.seconds)
+        else:
+            for _ in tqdm(range(int(self.seconds)), desc="Sleeping"):
+                time.sleep(1)
+                self.log.info("sleep...")
+        return dataset
+
+
