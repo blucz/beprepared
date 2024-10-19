@@ -46,6 +46,10 @@ beprepared is available on PyPI, and can be installed using pip:
 
     $ pip install beprepared
 
+## Documentation
+
+The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
+
 ## Quick Example
 
 Install beprepared using poetry, then define a simple workflow like this: 

@@ -1,12 +1,32 @@
-# FOOOO
+# Home
 
-helu
+## Overview
 
-Lorum ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+beprepared is an easy and efficient way to prepare high quality image datasets for diffusion model fine-tuning.
 
-[another](another.md)
+It falicates both human and machine-driven data prep work in a non-destructive environment that aggressively 
+avoids duplicated effort, even as your workflow evolves.
 
-FOO
+It is the most efficient way for one person to prepare image data sets with thousands of images or more.
 
+## Code
 
+The code is published on [GitHub](https://github.com/blucz/beprepared).
 
+Pull requests are welcome.
+
+## Installation
+
+You can install beprepared from PyPI:
+
+    $ pip install beprepared
+
+## Development Philosophy
+
+While beprepared is a technical product, user-experience is the primary focus. By providing a good user experience,
+people will create better datasets and better models. This is a win for everyone.
+
+beprepared is batteries-included software. While it's possible to define nodes in other PyPI packages, the first 
+choice should be to merge new functionality into `blucz/beprepared`. Extensions are not on our roadmap. While extension 
+ecosystems are powerful, they can also lead to confusing user experiences that are not beginner friendly, fragmentation, 
+and difficulty discovering functionality. 
