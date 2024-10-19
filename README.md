@@ -5,8 +5,10 @@
 
 beprepared is an easy and efficient way to prepare high quality image datasets for diffusion model fine-tuning.
 
-It is designed to facilitate both human and machine-driven data preparation work in a non-destructive environment
-that aggressively avoids duplication of effort, even as the data preparation workflow evolves. 
+It falicates both human and machine-driven data prep work in a non-destructive environment that aggressively 
+avoids duplicated effort, even as your workflow evolves.
+
+It is the most efficient way for one person to prepare image data sets with thousands of images or more.
 
 ## The Problem
 
@@ -28,11 +30,14 @@ disarray.
 
 Existing user interfaces for tasks that require a human in the loop, such as filtering scraped images, or 
 manually tagging images are clumsy at best. In many cases they are built in sluggish frameworks like Gradio,
-lack keyboard shortcuts, are not mobile friendly, and are not non-destructive. 
+lack keyboard shortcuts, are not mobile friendly, and are not non-destructive. We don't need beautiful 
+interfaces to work on image datasets, but we do need fast interfaces with keyboard support to move quickly
+through the work.
 
 Humans are human. If the tooling is bad, the datasets will be bad. If the datasets are bad, the models trained with 
 them will be bad. If the models are bad, the consumers of those models will make bad images, get frustrated, or 
-give up. beprepared is designed to break this cycle by making the data preparation process as friendly as possible.
+give up. beprepared is designed to improve every stage of that process by making the data preparation process as 
+efficient as possible.
 
 ## Quick Example
 
@@ -66,7 +71,7 @@ for the others. If you change the workflow, the system will preserve as much wor
 human-in-the-loop operations, or ML model invocations that have already been run.
 
 Significantly more complex workflows are possible, and beprepared is designed to support them. See 
-[EXAMPLES.md](EXAMPLES.md) for more examples.
+[the docs](https://blucz.github.io/beprepared) for more examples.
 
 ## Limitations
 
@@ -76,6 +81,12 @@ supports only one GPU, but multi-GPU support is planned.
 It is not a goal of this project to help people preparing pre-training datasets with millions or billions of images. 
 That would require a fundamentally more complex distributed architecture and would make it significantly more difficult
 for the community to work with and improve this tool.
+
+This project is developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make this software
+more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
+
+It is currently not a goal of beprepared to support multiple humans collaborating on a data set, but we may look 
+into this in the future.
 
 ## Roadmap
 
