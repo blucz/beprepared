@@ -40,6 +40,12 @@ them will be bad. If the models are bad, the consumers of those models will make
 give up. beprepared is designed to improve every stage of that process by making the data preparation process as 
 efficient as possible.
 
+## Installation
+
+beprepared is available on PyPI, and can be installed using pip:
+
+    $ pip install beprepared
+
 ## Quick Example
 
 Install beprepared using poetry, then define a simple workflow like this: 
@@ -74,6 +80,23 @@ human-in-the-loop operations, or ML model invocations that have already been run
 Significantly more complex workflows are possible, and beprepared is designed to support them. See 
 [the docs](https://blucz.github.io/beprepared) for more examples.
 
+## Features
+
+- Flexible workflow definitions using a Python based DSL
+- Non-destructive workflow execution
+- Caching of intermediate results to avoid duplicate work
+- Automatic Captioning using JoyCaption, Llama 3.2, BLIP3, xGen-mm, or GPT-4o
+- Human-in-the-loop filtering and tagging
+- Nudity detection using NudeNet
+- Transforming captions using LLMs
+- Upscaling and downscaling images using PIL
+- Filtering images based on size
+- Computing CLIP embeddings for images
+- Generates JSON sidecar files for each image so that you can use the data in other tools or scripts
+- Precise and Fuzzy (CLIP-based) image deduplication
+- Aesthetic scoring
+- Collection operations like Map, Apply, Filter, Sort, Shuffle, Concat, and Random Sampling
+
 ## Limitations
 
 This project is used to prepare data sets for fine-tuning diffusion models on a single compute node. Currently it
@@ -86,32 +109,14 @@ for the community to work with and improve this tool.
 This project is developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make this software
 more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
 
-It is currently not a goal of beprepared to support multiple humans collaborating on a data set, but we may look 
-into this in the future.
+It is currently not a goal of beprepared to support collaborative use cases--we are focused on making individuals as
+efficient as possible, as this is the most common case for diffusion model fine-tuning. We may look into collaborative
+use cases in the future.
 
-## Roadmap
+## Future Work
 
-beprepared is in a pre-alpha state. Much of the basic functionality is there, but it needs to be tested in real world
-use cases, and functionality expanded as needed. The DSL and symbol names are not stable and are subject to change
-at any time. 
-
-Here are some items planned for the future:
-
-- Implement a HumanRank node that uses pairwise rankings performed by a human to compute ELO ranks for images
-- Implement nodes that train small NNs or few-shot approaches to predict tags, filter results, or rank results so that human work on a subset of a large dataset can be applied to the whole dataset
-- Publish on PyPI and add installation instrucitons
 - Improve performance of VLMs
-- Support for multiple GPUs
-- Improve error messages + "foolproof" nature of this software
-- Improve experience on <24GB GPUs by automatically scaling batch sizes or using quantized models
-- Write example documentation
-- Write reference documentation for nodes
-- Create guide for contributing new nodes
-- Support data augmentation nodes like flip, caption variations, etc.
-- Support sidecar .json files for better interoperability with other tools/code
-- Support Local LLMs instead of just the API-based litellm abstraction
-
-In the future, beprepared will support LLM finetuning datasets as well, but that work will wait until image-related 
-functionality is more mature.
-
-
+- Improve multi-GPU support
+- Support data augmentation nodes like flip, caption variations, etc
+- Support local LLMs instead of just the API-based litellm abstraction
+- Officially support <24GB GPUs 
