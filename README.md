@@ -1,5 +1,6 @@
 <p align="center">
-  <img align="center" src="beprepared.jpg" width="460px" />
+  <!-- this must be an absolute URL to work on PyPI -->
+  <img align="center" src="https://raw.githubusercontent.com/blucz/beprepared/main/beprepared.png" width="460px" />
 </p>
 <p align="left">
 
