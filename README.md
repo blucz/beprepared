@@ -52,7 +52,7 @@ The full documentation is available at [https://blucz.github.io/beprepared](http
 
 ## Quick Example
 
-Install beprepared using poetry, then define a simple workflow like this: 
+Install beprepared using poetry, then define a workflow like this: 
 
       from beprepared import *
 
@@ -82,7 +82,7 @@ for the others. If you change the workflow, the system will preserve as much wor
 human-in-the-loop operations, or ML model invocations that have already been run.
 
 Significantly more complex workflows are possible, and beprepared is designed to support them. See 
-[the docs](https://blucz.github.io/beprepared) for more examples.
+[the docs](https://blucz.github.io/beprepared/examples) for more examples.
 
 ## Features
 
@@ -92,7 +92,7 @@ Significantly more complex workflows are possible, and beprepared is designed to
 - Automatic Captioning using JoyCaption, Llama 3.2, BLIP3, xGen-mm, or GPT-4o
 - Human-in-the-loop filtering and tagging
 - Nudity detection using NudeNet
-- Transforming captions using LLMs
+- Improving captions using LLMs
 - Upscaling and downscaling images using PIL
 - Filtering images based on size
 - Computing CLIP embeddings for images
@@ -117,10 +117,12 @@ It is currently not a goal of beprepared to support collaborative use cases--we 
 efficient as possible, as this is the most common case for diffusion model fine-tuning. We may look into collaborative
 use cases in the future.
 
-## Future Work
+## Roadmap
 
+- Support AI upscalers
 - Improve performance of VLMs
 - Improve multi-GPU support
 - Support data augmentation nodes like flip, caption variations, etc
 - Support local LLMs instead of just the API-based litellm abstraction
-- Officially support <24GB GPUs 
+- Support <24GB GPUs 
+
