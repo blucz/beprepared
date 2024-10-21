@@ -62,11 +62,14 @@ Install beprepared using poetry, then define a workflow like this:
               >> FilterBySize(min_edge=512)
               >> HumanFilter
               >> ConvertFormat("JPEG")
-              >> JoyCaptionAlphaOne(target_property='caption')
+              >> JoyCaptionAlphaOne
               >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
               >> Save
           )
           workspace.run()
+
+          See 
+**[See More Examples](https://blucz.github.io/beprepared/examples)**
 
 When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
 then ingest them into the workspace. Next, it will hit the HumanSelection step, and launch a web based UI 
@@ -107,22 +110,21 @@ This project is used to prepare data sets for fine-tuning diffusion models on a 
 supports only one GPU, but multi-GPU support is planned.
 
 It is not a goal of this project to help people preparing pre-training datasets with millions or billions of images. 
-That would require a fundamentally more complex distributed architecture and would make it significantly more difficult
+That would require a fundamentally more complex distributed architecture and would make it more difficult
 for the community to work with and improve this tool.
 
-This project is developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make this software
+This project is currently developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make this software
 more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
 
 It is currently not a goal of beprepared to support collaborative use cases--we are focused on making individuals as
-efficient as possible, as this is the most common case for diffusion model fine-tuning. We may look into collaborative
-use cases in the future.
+efficient as possible, as this is the most common case for diffusion model fine-tuning. 
 
 ## Roadmap
 
 - Support AI upscalers
 - Improve performance of VLMs
-- Improve multi-GPU support
+- Improve multi-GPU support (within one node)
 - Support data augmentation nodes like flip, caption variations, etc
-- Support local LLMs instead of just the API-based litellm abstraction
+- Support local LLMs for LLMTransform instead of just the API-based litellm abstraction
 - Support <24GB GPUs 
 
