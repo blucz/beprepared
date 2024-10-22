@@ -11,7 +11,7 @@ The filter node is used to filter images based on a predicate.
 ### Example
 
 ```python
-Filter(lambda image: image.aesthetic_score.value > 0.5)
+dataset >> Filter(lambda image: image.aesthetic_score.value > 0.5)
 ```
 
 ## Concat
@@ -45,7 +45,7 @@ For larger datasets, use the `index.html` file in the output directory next to t
 ### Example
 
 ```python
-Info
+dataset >> Info
 ```
 
 ## SetCaption
@@ -56,10 +56,14 @@ Sets the `caption` property on an image.
 
 - `caption`: The caption to set.
 
+### Output Properties
+
+- `image.caption`: The caption of the image.
+
 ### Example
 
 ```python
-SetCaption("ohwx person")
+dataset >> SetCaption("ohwx person")
 ```
 
 ## Take 
@@ -78,13 +82,13 @@ It can also be used for random sampling.
 
 ```python
 # Take the first 10 images
-Take(10)
+dataset >> Take(10)
 
 # Take 10 random images
-Take(10, random=True)
+dataset >> Take(10, random=True)
 
 # Take 10 random images, but always the same ones
-Take(10, random=True, seed=42)
+dataset >> Take(10, random=True, seed=42)
 ```
 
 ## Sorted
@@ -99,7 +103,7 @@ Sorts images in the dataset based on a `key` function.
 ### Example
 
 ```python
-Sorted(lambda image: image.aesthetic_score.value, reverse=True)
+dataset >> Sorted(lambda image: image.aesthetic_score.value, reverse=True)
 ```
 
 ## Shuffle
@@ -123,7 +127,7 @@ Maps a function over the images in a dataset.
 ### Example
 
 ```python
-Map(lambda image: image.with_props(caption=image.caption.value.upper()))
+dataset >> Map(lambda image: image.with_props(caption=image.caption.value.upper()))
 ```
 
 ## Apply
@@ -138,7 +142,7 @@ Applies a function to each image in a dataset.
 
 ```python
 
-Apply(lambda image: image.caption.value = image.caption.value.upper())
+dataset >> Apply(lambda image: image.caption.value = image.caption.value.upper())
 ```
 
 ## Set
@@ -149,10 +153,14 @@ Sets properties on an image.
 
 - `**kwargs`: The properties to set.
 
+### Output Properties
+
+- `image.{key}`: Properties specified in `kwargs`
+
 ### Example
 
 ```python
-Set(tags=["person", "ohwx"], myprop=12345, caption="my caption")
+dataset >> Set(tags=["person", "ohwx"], myprop=12345, caption="my caption")
 ```
 
 ## Fail 
@@ -166,7 +174,7 @@ The fail node is used to fail the workflow with an error message. This is useful
 ### Example
 
 ```python
-Fail("Something went wrong")
+dataset >> Fail("Something went wrong")
 ```
 
 ## Sleep

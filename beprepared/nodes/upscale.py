@@ -11,8 +11,7 @@ from io import BytesIO
 import torchvision.transforms
 torchvision.transforms.functional_tensor = torchvision.transforms.functional
 
-
-# TODO: cooler algorithms like SwinIR
+# TODO: cooler algorithms like SwinIR, also get ESRGAN working
 class UpscaleMethod:
     PIL    = "PIL"
     ESRGAN = "ESRGAN"

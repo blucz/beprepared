@@ -17,6 +17,6 @@ This is most commonly combined with `Sort` and `Filter` nodes in order to select
 ### Example
 
 ```python
-AestheticScore
+dataset >> AestheticScore
 ```
 

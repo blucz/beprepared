@@ -1,6 +1,5 @@
 # Format Conversion
 
-
 ## ConvertFormat
 
 Converts images to a specified format. Images already in that format will not be modified. 
@@ -19,6 +18,5 @@ that do not support `WEBP` or other formats.
 ### Example
 
 ```python
-ConvertFormat('PNG')
+dataset >> ConvertFormat('PNG')
 ```
-

@@ -34,12 +34,12 @@ default values are good for most cases.
 
 ```python
 # Basic usage showing Clip Encoder and Fuzzy Dedupe
-ClipEncode >> FuzzyDedupe
+dataset >> ClipEncode >> FuzzyDedupe
 
 # Advanced usage for tuning parameters
-ClipEncode >> FuzzyDedupe(threshold=0.9, debug_html='fuzzy_dedupe.html')
+dataset >> ClipEncode >> FuzzyDedupe(threshold=0.9, debug_html='fuzzy_dedupe.html')
 
 # Adjusting ANN parameters
-ClipEncode >> FuzzyDedupe(n_trees=20, n_neighbors=100)
+dataset >> ClipEncode >> FuzzyDedupe(n_trees=20, n_neighbors=100)
 ```
 
