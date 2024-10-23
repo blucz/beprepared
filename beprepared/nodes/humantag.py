@@ -90,7 +90,6 @@ class HumanTag(Node):
     '''
     def __init__(self, 
                  domain: str = 'default', 
-                 filter_domain: str = 'default', 
                  version = 1, 
                  tags: List[str] | List[List[str]] = [],
                  target_prop: str = 'tags',
@@ -121,6 +120,7 @@ class HumanTag(Node):
         self.domain = domain
         self.version = version
         self.skip_ui = skip_ui
+        self.target_prop = target_prop
 
     def eval(self, dataset):
         needs_tag = []
@@ -128,7 +128,7 @@ class HumanTag(Node):
 
         for image in dataset.images:
             image.human_tags = CachedProperty('humantag', self.domain, image)
-            image.tags       = ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else [])
+            setattr(image, self.target_prop, ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else []))
 
         for image in dataset.images:
             if not image.human_tags.has_value:
@@ -175,9 +175,9 @@ class HumanTag(Node):
         for image in dataset.images:
             data = image.human_tags.value if image.human_tags.has_value else {'version': 0, 'tags': []}
             tags = data['tags']
-            existing_tags = image.tags.value if image.tags.has_value else []
+            existing_tags = getattr(image, self.target_prop).value if getattr(image, self.target_prop).has_value else []
             existing_tags = [tag for tag in existing_tags if tag not in self.tags]
-            image.tags = ConstProperty(existing_tags + tags)
+            setattr(image, self.target_prop, ConstProperty(existing_tags + tags))
 
         dataset.images = [image for image in dataset.images if not get_rejected(image)]
 
