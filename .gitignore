@@ -164,3 +164,4 @@ cython_debug/
 # beprepared specific stuff
 node_modules
 _*
+.aider*
