@@ -8,7 +8,7 @@ from .network_swinir import SwinIR as SwinIR_model
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 WEIGHTS_URL = 'https://github.com/JingyunLiang/SwinIR/releases/download/v0.0'
-WEIGHTS_FOLDER = f'{os.path.dirname(__file__)}/weights'
+WEIGHTS_FOLDER = f'{os.path.dirname(__file__)}/_weights'
 WEIGHTS_NAME = {
     'classical_sr': '001_classicalSR_DF2K_s64w8_SwinIR-M_x<scale>.pth',
     'lightweight': '002_lightweightSR_DIV2K_s64w8_SwinIR-S_x<scale>.pth',
