@@ -54,7 +54,7 @@ class WebInterface:
                 'message': self.format(record)
             })
 
-    def __init__(self, logger, port=8989, debug=False):
+    def __init__(self, logger, port=9199, debug=False):
         self.log = logger
         self.port = port
         self.debug = debug
