@@ -196,3 +196,26 @@ Generates captions for images using `Salesforce/xgen-mm-phi3-mini-instruct-r-v1`
 dataset >> XGenMMCaption
 ```
 
+## Florence2Caption
+
+Generates captions for images using the Florence-2-large model.
+
+### Parameters
+
+- `target_prop` (default: `'caption'`): The property to store the caption in
+- `task` (default: `Florence2Task.MORE_DETAILED_CAPTION`): The captioning task to perform. One of:
+  - `Florence2Task.CAPTION`: Basic caption
+  - `Florence2Task.DETAILED_CAPTION`: Detailed caption
+  - `Florence2Task.MORE_DETAILED_CAPTION`: More detailed caption
+- `batch_size` (default: `8`): The number of images to process in parallel. If you are running out of memory, try reducing this value.
+
+### Output properties
+
+- `image.{target_prop}`: The caption generated for the image
+
+### Example
+
+```python
+dataset >> Florence2Caption(task=Florence2Task.DETAILED_CAPTION)
+```
+
