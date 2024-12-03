@@ -22,13 +22,13 @@ class Florence2Caption(Node):
     def __init__(self,
                  target_prop: str = 'caption',
                  task: Florence2Task = Florence2Task.MORE_DETAILED_CAPTION,
-                 batch_size: int = 8):
+                 batch_size: int = 64):
         '''Initializes the Florence2Caption node
 
         Args:
             target_prop (str): The property to store the caption in
             task (Florence2Task): The captioning task to perform (CAPTION, DETAILED_CAPTION, or MORE_DETAILED_CAPTION)
-            batch_size (int): The number of images to process in parallel. If you are running out of memory, try reducing this value.
+            batch_size (int): The number of images to process in parallel.
         '''
         super().__init__()
         self.target_prop = target_prop
@@ -58,7 +58,8 @@ class Florence2Caption(Node):
             MODEL_NAME,
             torch_dtype=torch_dtype,
             trust_remote_code=True
-        ).to(device)
+        )
+        model = model.to(device)
         processor = AutoProcessor.from_pretrained(
             MODEL_NAME,
             trust_remote_code=True

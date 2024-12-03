@@ -183,6 +183,37 @@ class Map(Node):
         dataset.images = [self.func(image) for image in dataset.images]
         return dataset
 
+class Passthrough(Node):
+    '''A node that does nothing and returns the dataset unchanged.
+    
+    This can be useful as a no-op placeholder in conditional pipeline branches.'''
+    def __init__(self):
+        '''Initializes the Passthrough node'''
+        super().__init__()
+
+    def eval(self, dataset):
+        return dataset
+
+class MapCaption(Node):
+    '''Maps the current caption to a new caption using a function'''
+    def __init__(self, func: Callable[[str], str]):
+        '''Initializes the MapCaption node
+
+        Args:
+            func (Callable[[str], str]): Function that takes the current caption and returns a new caption
+        '''
+        super().__init__()
+        self.func = func
+
+    def eval(self, dataset):
+        print("dataset.images", dataset.images)
+        for image in dataset.images:
+            print("image.caption.value", image.caption.value)
+            if image.caption.value:
+                new_caption = self.func(image.caption.value)
+                image.caption = ConstProperty(new_caption)
+        return dataset
+
 class Apply(Node):
     '''Applies a function to all images in a dataset'''
     def __init__(self, func: Callable[Image, None]):

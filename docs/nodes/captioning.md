@@ -157,6 +157,39 @@ Generates captions for images using `Qwen/Qwen2-VL-7B-Instruct`.
 dataset >> QwenVLCaption
 ```
 
+## Passthrough
+
+A node that does nothing and returns the dataset unchanged. This can be useful as a no-op placeholder in conditional pipeline branches.
+
+### Example
+
+```python
+# Use Passthrough as a no-op alternative in a conditional
+dataset >> (ProcessNode() if condition else Passthrough())
+```
+
+## MapCaption
+
+Maps the current caption to a new caption using a function.
+
+### Parameters
+
+- `func`: Function that takes the current caption string and returns a new caption string.
+
+### Output Properties
+
+- `image.caption`: The transformed caption.
+
+### Example
+
+```python
+# Add an exclamation mark to all captions
+dataset >> MapCaption(lambda caption: caption + "!")
+
+# Prepend a prefix to all captions
+dataset >> MapCaption(lambda caption: f"A photo showing {caption}")
+```
+
 ## SetCaption
 
 Sets the `caption` property on an image.

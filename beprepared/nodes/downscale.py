@@ -5,6 +5,8 @@ from beprepared.properties import CachedProperty, ConstProperty
 from tqdm import tqdm
 from PIL import Image
 from io import BytesIO
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 class DownscaleMethod:
     PIL    = "PIL"
@@ -25,9 +27,9 @@ class Downscale(Node):
         self.method   = method 
         self.format   = format
 
-    def downscale_image_pil(self, image, max_edge):
+    def _downscale_worker(args):
+        image_path, max_edge, format = args
         # Load the image using Pillow
-        image_path = self.workspace.get_path(image)
         image = Image.open(image_path)
         
         # Resize so that the shorter side is max_edge
@@ -39,21 +41,28 @@ class Downscale(Node):
             new_height = max_edge
             new_width = int((max_edge / height) * width)
 
-        self.log.debug(f"Downscaling {image_path} using PIL.")
-        self.log.debug(f"Original size: {width}x{height}, new size: {new_width}x{new_height}")
-
         resized_image = image.resize((new_width, new_height), Image.LANCZOS)
 
         if resized_image.mode != 'RGB':
             resized_image = resized_image.convert('RGB')
 
         byte_array = BytesIO()
-        image.save(byte_array, format=self.format)
-        objectid = self.workspace.put_object(byte_array.getvalue())
-
+        resized_image.save(byte_array, format=format)
+        
         return {
+            'path': image_path,
             'width': new_width,
             'height': new_height,
+            'bytes': byte_array.getvalue()
+        }
+
+    def downscale_image_pil(self, image, max_edge):
+        image_path = self.workspace.get_path(image)
+        result = self._downscale_worker((image_path, max_edge, self.format))
+        objectid = self.workspace.put_object(result['bytes'])
+        return {
+            'width': result['width'],
+            'height': result['height'],
             'objectid': objectid
         }
 
@@ -95,13 +104,30 @@ class Downscale(Node):
             dataset.images = [mapping.get(image, image) for image in dataset.images]
             return dataset
 
-        for image in tqdm(toconvert, desc="Downscaling images"):
+        # Process images in parallel using ProcessPoolExecutor
+        num_workers = multiprocessing.cpu_count()
+        with ProcessPoolExecutor(max_workers=num_workers) as executor:
             if self.method == DownscaleMethod.PIL:
-                image._downscale_data.value = self.downscale_image_pil(image, self.max_edge)
+                futures = []
+                for image in toconvert:
+                    image_path = self.workspace.get_path(image)
+                    futures.append(executor.submit(Downscale._downscale_worker, (image_path, self.max_edge, self.format)))
+                
+                for image, future in tqdm(zip(toconvert, as_completed(futures)), total=len(toconvert), desc=f"Downscaling images ({num_workers} workers)"):
+                    try:
+                        result = future.result()
+                        objectid = self.workspace.put_object(result['bytes'])
+                        image._downscale_data.value = {
+                            'width': result['width'],
+                            'height': result['height'],
+                            'objectid': objectid
+                        }
+                        mapping[image] = newimage(image)
+                    except Exception as e:
+                        self.log.error(f"Error processing {self.workspace.get_path(image)}: {str(e)}")
+                        raise
             else:
                 raise Abort(f"Unsupported downscaling method in Downscale: {self.method}")
-
-            mapping[image] = newimage(image)
 
         dataset.images = [mapping.get(image, image) for image in dataset.images]
         return dataset

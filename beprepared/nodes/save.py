@@ -3,7 +3,7 @@ from beprepared.dataset import Dataset
 from beprepared.utils import copy_or_hardlink
 from typing import List
 import numpy as np
-
+import urllib.parse
 import json
 import shutil
 import os
@@ -82,9 +82,10 @@ def generate_html(dst_path: str, images: List):
             ext           = image.ext.value
             base_filename = os.path.basename(original_path)[:80]    # limit length to keep filesystems happy.
             image_filename = f"{base_filename}_{objectid}{ext}"
+            image_filename_encoded = urllib.parse.quote(image_filename)
             caption = image.caption.value if image.caption.has_value else ""
             f.write("<tr>\n")
-            f.write(f"<td><img src='{image_filename}' loading='lazy' style='max-width:300px;'></td>\n")
+            f.write(f"<td><img src='{image_filename_encoded}' loading='lazy' style='max-width:300px;'></td>\n")
             f.write("<td style='padding: 8px'>\n")
 
             for k,v in image.props.items():
