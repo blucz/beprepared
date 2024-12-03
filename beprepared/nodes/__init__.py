@@ -1,7 +1,7 @@
 from beprepared.nodes.convert_format import ConvertFormat
 from beprepared.nodes.filters import Filter, FilterBySize
 from beprepared.nodes.load import Load
-from beprepared.nodes.utils import Sleep, Fail, Info, Concat, SetCaption, Take, Map, Set, Apply, Filter, Sorted, Shuffle
+from beprepared.nodes.utils import Sleep, Fail, Info, Concat, SetCaption, Take, Map, Set, Apply, Sorted, Shuffle
 from beprepared.nodes.nudenet import NudeNet
 from beprepared.nodes.save import Save
 from beprepared.nodes.joycaption import JoyCaptionAlphaOne

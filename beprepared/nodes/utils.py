@@ -139,21 +139,6 @@ class Take(Node):
             dataset.images = dataset.images[:self.n]
         return dataset
 
-class Filter(Node):
-    '''Filters images in a dataset based on a predicate'''
-    def __init__(self, predicate: Callable[Image, bool]):
-        '''Initializes the Filter node
-
-        Args:
-            predicate (Callable[[Image], bool]): The predicate to filter images with
-        '''
-        super().__init__()
-        self.predicate = predicate  
-
-    def eval(self, dataset):
-        dataset.images = [image for image in dataset.images if self.predicate(image)]
-        return dataset
-
 
 class Sorted(Node):
     '''Sorts images in a dataset based on a key'''

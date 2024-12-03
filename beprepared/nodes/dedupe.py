@@ -21,7 +21,8 @@ class ExactDedupe(Node):
         prev_count = len(dataset.images)
         dataset.images = [image for image in dataset.images 
                             if image.objectid.value not in visited and not visited.add(image.objectid.value)]
-        self.log.info(f"Removed {prev_count - len(dataset.images)} duplicates from dataset ({100 * (prev_count - len(dataset.images)) / prev_count:.1f}%)")
+        if prev_count > 0:
+            self.log.info(f"Removed {prev_count - len(dataset.images)} duplicates from dataset ({100 * (prev_count - len(dataset.images)) / prev_count:.1f}%)")
         return dataset
 
 class UnionFind:
