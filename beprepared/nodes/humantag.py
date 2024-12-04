@@ -29,7 +29,7 @@ def get_rejected(image):
 class HumanTagApplet(Applet):
     '''HumanTagApplet is a web interface for tagging images. It is used by the HumanTag node to allow users to tag images using a web interface.'''
     def __init__(self, version, tags_with_layout, tags, images_to_tag, cb_tagged=lambda image: None):
-        super().__init__('humantag', 'HumanTag', os.path.join(os.path.dirname(__file__), 'humantag_web', 'static'))
+        super().__init__('humantag', 'HumanTag')
         self.images_to_tag = images_to_tag
         self.cb_tagged = cb_tagged
         self.version = version

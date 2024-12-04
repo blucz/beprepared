@@ -2,6 +2,9 @@
   <div id="app" class="bg-dark text-white h-100 w-100">
     <div class="container text-center mb-4 pt-4">
       <h1>Want to keep this image?</h1>
+      <div v-if="domain !== 'default'" class="domain-label text-muted mb-3">
+        Domain: {{ domain }}
+      </div>
     </div>
 
     <div class='d-flex flex-row justify-content-stretch align-content-stretch align-items-stretch' style='padding:4px;'>
@@ -130,6 +133,7 @@ const baseURL = (import.meta.env.VITE_API_URL ?? '') + (props.apiPath??'');
 const backend = axios.create({ baseURL })
 
 const images = ref([]);
+const domain = ref('default');
 const canGoPrevious = computed(() => currentIndex.value > 0 && !exited.value);
 const canGoNext = computed(() => 
   !done.value && 
@@ -157,7 +161,8 @@ const imageBorderStyle = computed(() => {
 const loadImages = async () => {
   try {
     const response = await backend.get('/api/images');
-    images.value = response.data;
+    images.value = response.data.images;
+    domain.value = response.data.domain;
     console.log('images:', images.value);
     if (images.value.length === 0) {
       done.value = true;

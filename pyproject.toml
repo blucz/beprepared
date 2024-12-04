@@ -21,7 +21,7 @@ einops-exts = "^0.0.4"
 qwen-vl-utils = "^0.0.8"
 litellm = "^1.48.3"
 fastapi = "^0.115.0"
-uvicorn = "^0.31.0"
+uvicorn = {extras = ["standard"], version = "^0.32.1"}
 opencv-python = "^4.10.0.84"
 numba = "^0.60.0"
 realesrgan = "^0.3.0"

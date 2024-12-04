@@ -206,9 +206,7 @@ class MapCaption(Node):
         self.func = func
 
     def eval(self, dataset):
-        print("dataset.images", dataset.images)
         for image in dataset.images:
-            print("image.caption.value", image.caption.value)
             if image.caption.value:
                 new_caption = self.func(image.caption.value)
                 image.caption = ConstProperty(new_caption)

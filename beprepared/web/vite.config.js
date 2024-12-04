@@ -8,5 +8,10 @@ export default defineConfig({
     outDir: path.resolve(__dirname, 'static'),
     emptyOutDir: true,
   },
+  resolve: {
+    alias: {
+        '@components': '.'
+    }
+  }
 })
 

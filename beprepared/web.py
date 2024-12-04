@@ -11,10 +11,9 @@ import webbrowser
 import threading
 
 class Applet:
-    def __init__(self, name, component, static_files_path):
+    def __init__(self, name, component):
         self.name = name
         self.component = component
-        self.static_files_path = static_files_path
         self.app = FastAPI()
         self.web = None
         self.ev_closed = threading.Event()
@@ -36,7 +35,6 @@ class Applet:
         return self.ev_closed.wait()
 
     def run(self, workspace):
-        self.app.mount("/", StaticFiles(directory=self.static_files_path, html=True), name="static")
         workspace.web.activate_applet(self)
         self.wait()
 
@@ -54,7 +52,7 @@ class WebInterface:
                 'message': self.format(record)
             })
 
-    def __init__(self, logger, port=9199, debug=False):
+    def __init__(self, logger, port=8989, debug=False):
         self.log = logger
         self.port = port
         self.debug = debug

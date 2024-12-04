@@ -24,9 +24,10 @@ from fastapi.responses import JSONResponse, FileResponse
 
 class HumanFilterApplet(Applet):
     '''Backend for the HumanFilter and SmartHumanFilter nodes. This class is not intended to be used directly.'''
-    def __init__(self, images_to_filter, cb_filtered=lambda image: None):
-        super().__init__('humanfilter', 'HumanFilter', os.path.join(os.path.dirname(__file__), 'humanfilter_web', 'static'))
+    def __init__(self, images_to_filter, domain='default', cb_filtered=lambda image: None):
+        super().__init__('humanfilter', 'HumanFilter')
         self.images_to_filter = images_to_filter
+        self.domain = domain
         self.cb_filtered = cb_filtered
 
         # Map image IDs to images and properties
@@ -36,7 +37,7 @@ class HumanFilterApplet(Applet):
                             for idx,image in enumerate(self.images_to_filter)
                             if not image.passed_human_filter.has_value]
             random.shuffle(images_data)
-            return images_data
+            return {"images": images_data, "domain": self.domain}
 
         @self.app.get("/objects/{object_id}")
         def get_object(object_id: str):
@@ -112,7 +113,7 @@ class HumanFilter(Node):
             progress_bar.n += 1
             progress_bar.set_description(desc())
             progress_bar.refresh()
-        applet = HumanFilterApplet(images_to_filter, cb_filtered=image_filtered)
+        applet = HumanFilterApplet(images_to_filter, domain=self.domain, cb_filtered=image_filtered)
         applet.run(self.workspace)
         progress_bar.close()
 
@@ -235,8 +236,8 @@ class SmartHumanFilter(Node):
                 rejected_count = len([image for image in dataset.images if image.passed_human_filter.has_value and not image.passed_human_filter.value])
                 return accepted_count >= self.min_per_class and rejected_count >= self.min_per_class
 
-            ui = HumanFilterUi([image for image in dataset.images if not image.passed_human_filter.has_value], cb_filtered=cb_filtered)
-            ui.run()
+            applet = HumanFilterApplet([image for image in dataset.images if not image.passed_human_filter.has_value], domain=self.domain, cb_filtered=cb_filtered)
+            applet.run(self.workspace)
 
         # Prepare dataset
         embeddings = []
@@ -476,7 +477,8 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
             def image_filtered(image: Image):
                 progress_bar.n += 1
                 progress_bar.refresh()
-            HumanFilterUi(remaining_images, cb_filtered=image_filtered).run()
+            applet = HumanFilterApplet(remaining_images, domain=self.domain, cb_filtered=image_filtered)
+            applet.run(self.workspace)
             progress_bar.close()
 
             dataset.images = [image for image in dataset.images if 
