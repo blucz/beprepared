@@ -29,6 +29,7 @@ scikit-learn = "^1.5.2"
 annoy = "^1.17.3"
 simple-aesthetics-predictor = "^0.1.2"
 colorlog = "^6.9.0"
+sentencepiece = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 mkdocs = "^1.6.1"

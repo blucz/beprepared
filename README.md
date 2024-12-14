@@ -121,7 +121,6 @@ efficient as possible, as this is the most common case for diffusion model fine-
 
 ## Roadmap
 
-- Support AI upscalers
 - Improve performance of VLMs
 - Improve multi-GPU support (within one node)
 - Support data augmentation nodes like flip, caption variations, etc
