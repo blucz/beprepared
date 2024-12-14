@@ -83,8 +83,8 @@ class Load(Node):
                     height=height_prop,
                     format=format_prop
                 )
-                if did_import:
-                    self.log.info(f"Imported {shorten_path(path)} ({image.width.value}x{image.height.value} {image.format.value})")
+                #if did_import:
+                    #self.log.info(f"Imported {shorten_path(path)} ({image.width.value}x{image.height.value} {image.format.value})")
                 dataset.images.append(image)
             except:
                 self.log.exception(f"Error loading {shorten_path(path)}")

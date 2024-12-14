@@ -74,14 +74,16 @@ class HumanFilter(Node):
     consider using `SmartHumanFilter` instead. 
     '''
 
-    def __init__(self, domain: str = 'default'):
+    def __init__(self, domain: str = 'default', skip_ui: bool = False):
         ''' Initialize a HumanFilter node
 
         Args:
         - domain (str): Domain to use for caching the results. This interoperates with `SmartHumanFilter` domains. Most people should leave this as 'default' but if your workflow contains multiple HumanFilter steps in your workflow that use different filter criteria and may encounter the same images, you should assign a unique domain to each.
+        - skip_ui (bool): If True, applies previously established filters but passes all unfiltered images to the next stage without showing the UI. Useful for testing or when you want to temporarily bypass human filtering.
         '''
         super().__init__()
         self.domain = domain
+        self.skip_ui = skip_ui
 
     def eval(self, dataset):
         images_to_filter = []
@@ -93,6 +95,11 @@ class HumanFilter(Node):
         if len(images_to_filter) == 0:
             self.log.info("All images already have been filtered, skipping")
             dataset.images = [image for image in dataset.images if image.passed_human_filter.value]
+            return dataset
+
+        if self.skip_ui:
+            self.log.info(f"Skipping UI for {len(images_to_filter)} unfiltered images")
+            dataset.images = [image for image in dataset.images if image.passed_human_filter.value or not image.passed_human_filter.has_value]
             return dataset
 
         def desc():
