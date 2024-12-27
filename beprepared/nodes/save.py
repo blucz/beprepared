@@ -1,12 +1,13 @@
 from beprepared.node import Node
 from beprepared.dataset import Dataset
 from beprepared.utils import copy_or_hardlink
-from typing import List
+from typing import List, Dict
 import numpy as np
 import urllib.parse
 import json
 import shutil
 import os
+from collections import defaultdict
 
 class Save(Node):
     '''Saves images and captions to a directory, following foo.jpg, foo.txt, bar.jpg, bar.txt, etc. Additionally, an `index.html` file is generated that displays the images and their properties for evaluation purposes.''' 
@@ -32,21 +33,33 @@ class Save(Node):
         else:
             dst_path = self.dir
         shutil.rmtree(dst_path, ignore_errors=True)
-
+        
+        # Track used filenames for each objectid to handle duplicates
+        used_names: Dict[str, int] = defaultdict(int)
+        
         for image in dataset.images:
             objectid       = image.objectid.value
             original_path  = image.original_path.value
-            ext            = image.ext.value
+            ext           = image.ext.value
             src_image_path = self.workspace.get_path(image)
             base_filename  = os.path.basename(original_path)[:80]    # limit length to keep filesystems happy.
-            dst_image_path = os.path.join(dst_path, f"{base_filename}_{objectid}{ext}")
-                
+            
+            # Get suffix for duplicate images
+            suffix = ""
+            count = used_names[f"{base_filename}_{objectid}"]
+            if count > 0:
+                suffix = f"_{count}"
+            used_names[f"{base_filename}_{objectid}"] += 1
+            
+            # Create filenames with suffix
+            dst_image_path = os.path.join(dst_path, f"{base_filename}_{objectid}{suffix}{ext}")
+            
             os.makedirs(os.path.dirname(dst_image_path), exist_ok=True)
             copy_or_hardlink(src_image_path, dst_image_path)
 
             if self.captions:
                 if image.caption.has_value:
-                    dst_caption_path = os.path.join(dst_path, f"{base_filename}_{objectid}{self.caption_ext}")
+                    dst_caption_path = os.path.join(dst_path, f"{base_filename}_{objectid}{suffix}{self.caption_ext}")
                     with open(dst_caption_path, 'w') as f:
                         f.write(image.caption.value)
 
@@ -60,15 +73,15 @@ class Save(Node):
                     elif hasattr(v, 'to_json'):
                         v = v.to_json()
                     sidecar_data[k] = v
-                sidecar_path = os.path.join(dst_path, f"{base_filename}_{objectid}.json")
+                sidecar_path = os.path.join(dst_path, f"{base_filename}_{objectid}{suffix}.json")
                 with open(sidecar_path, 'w') as f:
                     json.dump(sidecar_data, f, indent=2)
 
         self.log.info("saving html")
-        generate_html(dst_path, dataset.images)
+        generate_html(dst_path, dataset.images, used_names)
         return dataset
 
-def generate_html(dst_path: str, images: List):
+def generate_html(dst_path: str, images: List, used_names: Dict[str, int]):
     if len(images) == 0: return
 
     html_path = os.path.join(dst_path, "index.html")
@@ -81,7 +94,12 @@ def generate_html(dst_path: str, images: List):
             original_path = image.original_path.value
             ext           = image.ext.value
             base_filename = os.path.basename(original_path)[:80]    # limit length to keep filesystems happy.
-            image_filename = f"{base_filename}_{objectid}{ext}"
+            # Get suffix for HTML display
+            suffix = ""
+            count = used_names[f"{base_filename}_{objectid}"] - 1
+            if count > 0:
+                suffix = f"_{count}"
+            image_filename = f"{base_filename}_{objectid}{suffix}{ext}"
             image_filename_encoded = urllib.parse.quote(image_filename)
             caption = image.caption.value if image.caption.has_value else ""
             f.write("<tr>\n")
