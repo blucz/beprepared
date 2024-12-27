@@ -12,7 +12,7 @@ from beprepared.nodes.tags import AddTags, RemoveTags, RewriteTags
 from beprepared.nodes.xgenmmcaption import XGenMMCaption
 from beprepared.nodes.qwenvlcaption import QwenVLCaption 
 from beprepared.nodes.llamacaption import LlamaCaption  
-from beprepared.nodes.llmtransform import LLMCaptionTransform
+from beprepared.nodes.llmtransform import LLMCaptionTransform, LLMCaptionVariations
 from beprepared.nodes.humanfilter import SmartHumanFilter, HumanFilter
 from beprepared.nodes.humantag import HumanTag
 from beprepared.nodes.upscale import Upscale, UpscaleMethod

@@ -129,6 +129,32 @@ In order to download this model, you need to be logged into huggingface.
 dataset >> LlamaCaption
 ```
 
+## LLMCaptionVariations
+
+Generates variations of existing image captions using LLaMA 3.1 8B Instruct. This preserves the original caption and adds numbered variations as new properties.
+
+### Parameters
+
+- `target_prop` (default: `'caption'`): Base property name to store variations in. Will append _1, _2 etc.
+- `variations` (default: `2`): Number of variations to generate per image
+- `parallel` (default: `20`): The number of images to process in parallel
+- `temperature` (default: `0.7`): The temperature to use when sampling from the model
+- `model` (default: `'together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo'`): The LLM model to use for generating variations
+
+### Output properties
+
+- `image.{target_prop}`: The original caption (preserved)
+- `image.{target_prop}_1`: First variation
+- `image.{target_prop}_2`: Second variation (if variations > 1)
+- etc.
+
+### Example
+
+```python
+# Generate 3 variations of each caption
+dataset >> LLMCaptionVariations(variations=3)
+```
+
 ## LLMCaptionTransform
 
 Computes image captions using a Large Language Model. This can be used for a number of purposes included:

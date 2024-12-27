@@ -58,7 +58,7 @@ class Save(Node):
             copy_or_hardlink(src_image_path, dst_image_path)
 
             if self.captions:
-                if image.caption.has_value:
+                if image.caption.has_value and image.caption.value:
                     dst_caption_path = os.path.join(dst_path, f"{base_filename}_{objectid}{suffix}{self.caption_ext}")
                     with open(dst_caption_path, 'w') as f:
                         f.write(image.caption.value)
