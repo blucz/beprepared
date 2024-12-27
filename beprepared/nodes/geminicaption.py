@@ -12,8 +12,6 @@ from beprepared.node import Node
 from beprepared.properties import CachedProperty, ComputedProperty
 from beprepared.nodes.convert_format import convert_image
 
-class GeminiCaptionResult(BaseModel):
-    caption: Optional[str]
 
 class GeminiCaption(Node):
     '''Generates captions for images using Gemini 2.0 Flash Vision'''
@@ -57,7 +55,7 @@ Your output should be ONLY the caption, with no boilerplate, pleasantries, or ot
     def eval(self, dataset):
         needs_caption = []
         for image in dataset.images:
-            image._gemini_caption = CachedProperty('gemini-2.0-flash', 'v1', self.prompt, image)
+            image._gemini_caption = CachedProperty('gemini-2.0-flash', 'v2', self.prompt, image)
             setattr(image, self.target_prop, ComputedProperty(lambda image: image._gemini_caption.value if image._gemini_caption.has_value else None))
             if not image._gemini_caption.has_value:
                 needs_caption.append(image)
@@ -125,10 +123,10 @@ Your output should be ONLY the caption, with no boilerplate, pleasantries, or ot
                     delay *= 2
 
             try:
-                result = GeminiCaptionResult(caption=response.text)
-                image._gemini_caption.value = result
-                self.log.info(f"{path} => {result.caption}")
+                caption = response.text.strip()
+                image._gemini_caption.value = caption
+                self.log.info(f"{path} => {caption}")
             except ValueError as e:
                 if hasattr(response, 'prompt_feedback') and response.prompt_feedback.block_reason:
                     self.log.error(f"Gemini blocked prompt for {path} due to: {response.prompt_feedback.block_reason}")
-                    image._gemini_caption.value = GeminiCaptionResult(caption=None)
+                    image._gemini_caption.value = None
