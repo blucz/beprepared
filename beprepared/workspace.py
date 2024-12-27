@@ -159,7 +159,7 @@ class Workspace:
     _active_workspaces = []
     current = None
 
-    def __init__(self, dir=None, logger=None) -> None:
+    def __init__(self, dir=None, logger=None, port=8989) -> None:
         self.dir = dir or os.getcwd()
         os.makedirs(self.dir, exist_ok=True)
         self.db = Database(os.path.join(self.dir, '_beprepared'))
@@ -174,7 +174,7 @@ class Workspace:
         else:
             self.log = configure_default_logger()
 
-        self.web = WebInterface(self.log, debug=False)
+        self.web = WebInterface(self.log, debug=False, port=port)
 
     def __enter__(self):
         Workspace._active_workspaces.append(self)
