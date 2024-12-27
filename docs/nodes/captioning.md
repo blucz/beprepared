@@ -1,5 +1,28 @@
 # Captioning
 
+## GeminiCaption
+
+Generates captions for images using Gemini 2.0 Flash Vision.
+
+You must set either `GEMINI_API_KEY` or `GOOGLE_API_KEY` in your environment to use this node.
+
+## Parameters
+
+- `target_prop` (default: `'caption'`): The property to store the caption in
+- `prompt` (default: `None`): The prompt to use for the Gemini model
+- `instructions` (default: `None`): Additional instructions to append to the prompt
+- `parallel` (default: `8`): The number of images to process in parallel. Adjust based on API rate limits.
+
+### Output properties
+
+- `image.{target_prop}`: The caption generated for the image
+
+### Example
+
+```python
+dataset >> GeminiCaption()
+```
+
 ## GPT4oCaption
 
 Generates captions for images using GPT4o.
@@ -44,6 +67,43 @@ Generates captions for images using JoyCaption Alpha One
 
 ```python
 dataset >> JoyCaptionAlphaOne
+```
+
+## JoyCaptionAlphaTwo
+
+Generates captions for images using JoyCaption Alpha Two with additional caption types and options.
+
+### Parameters
+
+- `target_prop` (default: `'caption'`): The property to store the caption in
+- `caption_type` (default: `'descriptive'`): The type of caption to generate. Options:
+  - `'descriptive'`
+  - `'descriptive_informal'`
+  - `'training_prompt'`
+  - `'midjourney'`
+  - `'booru_tag_list'`
+  - `'booru_like_tag_list'`
+  - `'art_critic'`
+  - `'product_listing'`
+  - `'social_media_post'`
+- `caption_length` (default: `'long'`): The length of the caption (`'any'`, `'very short'`, `'short'`, `'medium-length'`, `'long'`, `'very long'`, or an integer)
+- `extra_options` (default: `[]`): List of extra options to include in the caption
+- `name_input` (default: `''`): Name to use when referring to people/characters in the image
+- `batch_size` (default: `4`): The number of images to process in parallel
+
+### Output properties
+
+- `image.{target_prop}`: The caption generated for the image
+
+### Example
+
+```python
+dataset >> JoyCaptionAlphaTwo(
+    caption_type='art_critic',
+    caption_length='very long',
+    extra_options=['Include information about lighting'],
+    name_input='Alice'
+)
 ```
 
 ## LlamaCaption
