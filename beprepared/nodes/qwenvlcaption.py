@@ -1,4 +1,5 @@
 import os
+import gc
 from typing import Optional, Literal
 
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
@@ -104,5 +105,10 @@ class QwenVLCaption(Node):
             for image, caption in zip(batch_images, output_text):
                 image._qwenvl_caption.value = caption.strip()
 
+        # Cleanup
+        del model, processor
+        gc.collect()
+        torch.cuda.empty_cache()
+        
         return dataset
 

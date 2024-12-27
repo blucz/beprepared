@@ -1,3 +1,4 @@
+import gc
 from enum import Enum
 from typing import Optional
 
@@ -101,6 +102,11 @@ class Florence2Caption(Node):
                 image._florence2_caption.value = final_caption
                 self.log.info(f"{path} => {final_caption}")
 
+        # Cleanup
+        del model, processor
+        gc.collect()
+        torch.cuda.empty_cache()
+        
         return dataset
 
 __all__ = ['Florence2Caption']

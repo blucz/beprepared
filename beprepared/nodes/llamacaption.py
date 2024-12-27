@@ -1,3 +1,4 @@
+import gc
 from typing import Optional
 
 from transformers import MllamaForConditionalGeneration, AutoProcessor
@@ -99,6 +100,11 @@ class LlamaCaption(Node):
                 image._llama_caption.value = clean_caption
                 self.log.info(f"{self.workspace.get_path(image)} => {clean_caption}")
 
+        # Cleanup
+        del model, processor
+        gc.collect()
+        torch.cuda.empty_cache()
+        
         return dataset
 
 __all__ = ['LlamaCaption']

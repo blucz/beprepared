@@ -1,4 +1,5 @@
 import os
+import gc
 from typing import Optional, Literal
 
 from transformers import AutoModelForVision2Seq, AutoTokenizer, AutoImageProcessor, StoppingCriteria, LogitsProcessor
@@ -140,4 +141,9 @@ class XGenMMCaption(Node):
                 image._xgenmm_caption.value = prediction.strip()
                 #self.log.info(prediction)
 
+        # Cleanup
+        del model, tokenizer, image_processor
+        gc.collect()
+        torch.cuda.empty_cache()
+        
         return dataset
