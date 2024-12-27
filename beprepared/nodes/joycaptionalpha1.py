@@ -22,7 +22,7 @@ import base64
 import openai
 
 CLIP_PATH = "google/siglip-so400m-patch14-384"
-MODEL_PATH = "meta-llama/Meta-Llama-3.1-8B"
+BASE_MODEL_PATH = "meta-llama/Meta-Llama-3.1-8B"
 
 CAPTION_TYPE_MAP = {
     ("descriptive", "formal", False, False): ["Write a descriptive caption for this image in a formal tone."],
@@ -166,7 +166,7 @@ class JoyCaptionAlphaOne(Node):
         self.clip_model.to("cuda")
 
         self.log.info(f"Loading LLama 3.1-8B with JoyCaption Lora")
-        self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, use_fast=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_PATH, use_fast=False)
         assert isinstance(self.tokenizer, PreTrainedTokenizer) or isinstance(self.tokenizer, PreTrainedTokenizerFast), f"Tokenizer is of type {type(self.tokenizer)}"
         self.text_model = AutoModelForCausalLM.from_pretrained(text_model_path, torch_dtype=torch.bfloat16)
         self.text_model.eval()

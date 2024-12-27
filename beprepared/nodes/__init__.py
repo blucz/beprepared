@@ -4,8 +4,10 @@ from beprepared.nodes.load import Load
 from beprepared.nodes.utils import Sleep, Fail, Info, Concat, SetCaption, Take, Map, Set, Apply, Sorted, Shuffle, MapCaption, Passthrough
 from beprepared.nodes.nudenet import NudeNet
 from beprepared.nodes.save import Save
-from beprepared.nodes.joycaption import JoyCaptionAlphaOne
+from beprepared.nodes.joycaptionalpha1 import JoyCaptionAlphaOne
+from beprepared.nodes.joycaptionalpha2 import JoyCaptionAlphaTwo
 from beprepared.nodes.gpt4ocaption import GPT4oCaption
+from beprepared.nodes.geminicaption import GeminiCaption
 from beprepared.nodes.tags import AddTags, RemoveTags, RewriteTags
 from beprepared.nodes.xgenmmcaption import XGenMMCaption
 from beprepared.nodes.qwenvlcaption import QwenVLCaption 
