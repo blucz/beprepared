@@ -79,4 +79,7 @@ class Node(metaclass=NodeMeta):
         end_time = time.perf_counter()
         self.log.info(f"Finished in {end_time - start_time:.2f}s")
         self.workspace.web.disconnect_log(self.__class__.__name__, self.log)
+        
+        if ret is None:
+            raise ValueError(f"Node {self.__class__.__name__} returned None. Nodes must return a Dataset object.")
         return ret

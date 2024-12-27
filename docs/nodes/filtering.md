@@ -14,6 +14,28 @@ The filter node is used to filter images based on a predicate.
 dataset >> Filter(lambda image: image.aesthetic_score.value > 0.5)
 ```
 
+## FilterByAspectRatio
+
+Filters images based on their aspect ratio (width/height).
+
+### Parameters
+
+- `min_aspect` (default: `None`): The minimum aspect ratio to keep
+- `max_aspect` (default: `None`): The maximum aspect ratio to keep
+
+### Example
+
+```python
+# Keep only images with aspect ratios between 0.5 and 2.0
+dataset >> FilterByAspectRatio(min_aspect=0.5, max_aspect=2.0)
+
+# Keep only landscape images (wider than tall)
+dataset >> FilterByAspectRatio(min_aspect=1.0)
+
+# Keep only portrait images (taller than wide)
+dataset >> FilterByAspectRatio(max_aspect=1.0)
+```
+
 ## FilterBySize
 
 Excludes images from the dataset based on their size.

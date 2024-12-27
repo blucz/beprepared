@@ -41,11 +41,39 @@ class FilterBySize(Node):
             return False
         return True
 
-    def eval(self, dataset: List[Dataset]) -> Dataset:
+    def eval(self, dataset: Dataset) -> Dataset:
         orig_images = dataset.images
         dataset.images = [image for image in orig_images if self.is_ok(image)]
         self.log.info(f"Kept {len(dataset.images)} out of {len(orig_images)} images ({len(orig_images) - len(dataset.images)} filtered)")
         return dataset
+
+class FilterByAspectRatio(Node):
+    '''Filters images based on their aspect ratio (width/height)'''
+
+    def __init__(self, min_aspect=None, max_aspect=None):
+        '''Initializes the FilterByAspectRatio node
+
+        Args:
+            min_aspect (float): The minimum aspect ratio (width/height) to keep
+            max_aspect (float): The maximum aspect ratio (width/height) to keep
+        '''
+        super().__init__()
+        self.min_aspect = min_aspect
+        self.max_aspect = max_aspect
+
+    def is_ok(self, image: Image) -> bool:
+        if self.min_aspect and image.aspect_ratio.value < self.min_aspect:
+            return False
+        if self.max_aspect and image.aspect_ratio.value > self.max_aspect:
+            return False
+        return True
+
+    def eval(self, dataset: Dataset) -> Dataset:
+        orig_images = dataset.images
+        dataset.images = [image for image in orig_images if self.is_ok(image)]
+        self.log.info(f"Kept {len(dataset.images)} out of {len(orig_images)} images ({len(orig_images) - len(dataset.images)} filtered)")
+        return dataset
+
 
 class Filter(Node):
     def __init__(self, predicate: Callable[[Image], bool]):

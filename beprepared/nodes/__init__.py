@@ -1,5 +1,5 @@
 from beprepared.nodes.convert_format import ConvertFormat
-from beprepared.nodes.filters import Filter, FilterBySize
+from beprepared.nodes.filters import Filter, FilterBySize, FilterByAspectRatio
 from beprepared.nodes.load import Load
 from beprepared.nodes.utils import Sleep, Fail, Info, Concat, SetCaption, Take, Map, Set, Apply, Sorted, Shuffle, MapCaption, Passthrough
 from beprepared.nodes.nudenet import NudeNet

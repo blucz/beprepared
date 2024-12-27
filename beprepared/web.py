@@ -112,7 +112,7 @@ class WebInterface:
 
     def connect_log(self, name, logger):
         '''Connect a logger to the web interface'''
-        self.log.info(f"connect_log: {logger.name}")
+        #self.log.info(f"connect_log: {logger.name}")
         self.broadcast({
             'command': 'connect_log', 
             'name': logger.name
@@ -123,7 +123,7 @@ class WebInterface:
 
     def disconnect_log(self, name, logger):
         '''Disconnect a logger from the web interface'''
-        self.log.info(f"disconnect_log: {logger.name}")
+        #self.log.info(f"disconnect_log: {logger.name}")
         logger.removeHandler(self.log_handlers[name])
         self.log_active.remove(name)
         self.broadcast({

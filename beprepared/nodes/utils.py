@@ -60,7 +60,7 @@ class Info(Node):
 
     def eval(self, dataset) -> Dataset:
         if len(dataset.images) == 0:
-            return
+            return dataset
         max_length_of_propname = max(len(k) for image in dataset.images for k in image.props.keys())
         terminal_cols = shutil.get_terminal_size().columns 
         for image in dataset.images:

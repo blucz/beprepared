@@ -77,7 +77,7 @@ class Save(Node):
                 with open(sidecar_path, 'w') as f:
                     json.dump(sidecar_data, f, indent=2)
 
-        self.log.info("saving html")
+        self.log.info("Saving html")
         generate_html(dst_path, dataset.images, used_names)
         return dataset
 
