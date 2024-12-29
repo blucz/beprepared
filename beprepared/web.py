@@ -1,4 +1,5 @@
 import uvicorn
+import signal
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -84,8 +85,7 @@ class WebInterface:
                 while True:
                     data = await websocket.receive_text()
                     self.on_recv(websocket, data)
-            except Exception as e:
-                self.log.error(f"websocket error: {e}")
+            except Exception:
                 self.websockets.remove(websocket)
 
         # create subrouter at /applet
@@ -164,11 +164,36 @@ class WebInterface:
         '''Broadcast data to all connected websockets'''
         def do_broadcast():
             for ws in self.websockets:
-                print(f"sending {data}")
+                #print(f"sending {data}")
                 asyncio.create_task(ws.send_text(json.dumps(data)))
         self.loop.call_soon_threadsafe(do_broadcast)
 
+    def stop(self):
+        """Stop the web interface cleanly"""
+        if hasattr(self, 'server'):
+            self.server.should_exit = True
+            if hasattr(self, 'thread'):
+                self.thread.join()
+            # Close all websockets
+            if self.loop:
+                for ws in self.websockets[:]:
+                    self.loop.call_soon_threadsafe(lambda: asyncio.create_task(ws.close()))
+                self.websockets.clear()
+
     def start(self):
+        # Store original SIGINT handler
+        self.original_sigint = signal.getsignal(signal.SIGINT)
+        
+        def sigint_handler(signum, frame):
+            self.log.info("Received SIGINT, shutting down...")
+            self.stop()
+            # Restore original SIGINT handler and re-raise the signal
+            signal.signal(signal.SIGINT, self.original_sigint)
+            os.kill(os.getpid(), signal.SIGINT)
+
+        # Set our custom SIGINT handler
+        signal.signal(signal.SIGINT, sigint_handler)
+
         self.config = uvicorn.Config(self.app, host="0.0.0.0", port=self.port, log_level='debug' if self.debug else 'critical')
         self.server = uvicorn.Server(self.config)
 
@@ -182,7 +207,6 @@ class WebInterface:
 
         # Run web interface in the background
         self.thread = threading.Thread(target=self.server.run)
-        self.thread.daemon = True
         self.thread.start()
 
         self.ev_ready.wait()

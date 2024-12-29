@@ -1,4 +1,5 @@
 import os
+import time
 from io import BytesIO
 from PIL import Image as PILImage, UnidentifiedImageError
 
@@ -45,6 +46,8 @@ class Load(Node):
         ws = Workspace.current
         skipped = 0
         import_count = 0
+        total_processed = 0
+        start_time = time.time()
         for path in _find_images(self.dir):
             try:
                 original_path_prop = ConstProperty(path)
@@ -84,8 +87,13 @@ class Load(Node):
                     format=format_prop
                 )
                 #if did_import:
-                    #self.log.info(f"Imported {shorten_path(path)} ({image.width.value}x{image.height.value} {image.format.value})")
+                #    self.log.info(f"Imported {shorten_path(path)} ({image.width.value}x{image.height.value} {image.format.value})")
                 dataset.images.append(image)
+                total_processed += 1
+                if total_processed % 1000 == 0:
+                    elapsed = time.time() - start_time
+                    rate = total_processed / elapsed
+                    self.log.info(f"Progress: processed {total_processed} images ({import_count} imported) at {rate:.1f} images/sec")
             except:
                 self.log.exception(f"Error loading {shorten_path(path)}")
                 skipped += 1

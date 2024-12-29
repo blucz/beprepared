@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 from beprepared.utils import copy_or_hardlink
 from beprepared.logging import configure_default_logger
 import hashlib
-from tqdm import tqdm
+from beprepared.web import WebInterface
 import requests
 import threading
+from tqdm import tqdm
 from beprepared.web import WebInterface
 
 from typing import List, Dict, Callable, Any, TypeVar, Generic
@@ -191,6 +192,10 @@ class Workspace:
             Workspace.current = Workspace._active_workspaces[-1]
         else:
             Workspace.current = None
+        
+        # Clean up web interface
+        if hasattr(self, 'web'):
+            self.web.stop()
 
     def get_object_path(self, hash: str) -> str:
         return self.db.get_object_path(hash)
@@ -211,6 +216,9 @@ class Workspace:
             for node in self.nodes:
                 if len(node.sinks) == 0:
                     node()
+        except KeyboardInterrupt:
+            self.log.info("\n\nStopped by user..Exiting.\n")
         except Abort as e:
             self.log.error(str(e))
+        self.log.info("Workspace finished")
 

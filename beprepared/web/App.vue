@@ -15,10 +15,14 @@
         <div v-if='!logger_name' class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <div v-else>
-          <h2>{{ logger_name }}</h2>
-          <div v-for='entry in log' :key='entry.id'>
-            <div>{{ entry.message }}</div>
+        <div class="terminal-wrapper w-100 d-flex flex-column">
+          <h2 class="text-center mb-2">{{ logger_name }}</h2>
+          <div class="terminal-container">
+            <div class="terminal bg-black rounded p-2" @scroll="handleScroll">
+              <div v-for='entry in log' :key='entry.id' class="log-entry">
+                <span class="timestamp">[{{ entry.time }}]</span> {{ entry.message }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -45,10 +49,54 @@
 .footer {
   background: #354044;
 }
+.terminal-wrapper {
+  width: 95vw;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.terminal-container {
+  height: 45vh;
+  min-width: 800px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #0d1117;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.terminal {
+  height: 100%;
+  overflow-y: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.3;
+  color: #e6e6e6;
+}
+.log-entry {
+  padding: 1px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.timestamp {
+  color: #6e7681;
+  user-select: none;
+}
+/* Custom scrollbar for the terminal */
+.terminal::-webkit-scrollbar {
+  width: 8px;
+}
+.terminal::-webkit-scrollbar-track {
+  background: #161b22;
+}
+.terminal::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+.terminal::-webkit-scrollbar-thumb:hover {
+  background: #3f444d;
+}
 </style>
 
 <script setup>
-import { ref, shallowRef, computed, onMounted, onBeforeUnmount, createVNode, render } from 'vue';
+import { ref, shallowRef, computed, onMounted, onBeforeUnmount, createVNode, render, nextTick } from 'vue';
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
 import axios from 'axios';
 
@@ -69,6 +117,7 @@ const applet = shallowRef(null);
 const appletProps = ref({});
 const log = ref([]);
 const logger_name = ref(null);
+const userHasScrolled = ref(false);
 
 let shouldBeConnected = false;
 let websocket;
@@ -124,7 +173,24 @@ const openWebsocket = () => {
     } else if (message.command == 'deactivate') {
       clearApplet();
     } else if (message.command == 'log') {
-      log.value.push(message);
+      log.value.push({
+        ...message,
+        time: new Date().toLocaleTimeString()
+      });
+      // Auto-scroll to bottom if user hasn't scrolled up
+      nextTick(() => {
+        const terminal = document.querySelector('.terminal');
+        if (terminal && !userHasScrolled.value) {
+          // Force a reflow to ensure scrollHeight is accurate
+          terminal.style.display = 'none';
+          terminal.offsetHeight; // trigger reflow
+          terminal.style.display = '';
+          
+          nextTick(() => {
+            terminal.scrollTop = terminal.scrollHeight;
+          });
+        }
+      });
     } else if (message.command == 'connect_log') {
       logger_name.value = message.name;
       log.value.length = 0;
@@ -165,6 +231,12 @@ onMounted(() => {
   shouldBeConnected = true;
   openWebsocket();
 });
+
+const handleScroll = (event) => {
+  const terminal = event.target;
+  const isScrolledToBottom = Math.abs(terminal.scrollHeight - terminal.clientHeight - terminal.scrollTop) < 1;
+  userHasScrolled.value = !isScrolledToBottom;
+};
 
 onBeforeUnmount(() => {
   closeWebsocket();
