@@ -1,5 +1,6 @@
 import uvicorn
 import signal
+import datetime
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,6 +65,8 @@ class WebInterface:
         self.log_handlers = {}
         self.log_active = set()
         self.ev_ready = threading.Event()
+        self.log_history = []
+        self.current_progress = None
         self.app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
@@ -151,6 +154,14 @@ class WebInterface:
             self.log.error(f"deactivate_applet: applet {applet} is not active")
 
     def on_connect(self, websocket):
+        # Send history first
+        if self.log_history:
+            asyncio.create_task(websocket.send_text(json.dumps({
+                'command': 'history',
+                'logs': self.log_history[-1000:],
+                'progress': self.current_progress
+            })))
+        
         if self.applet:
             self.activate()
         for name in self.log_active:
@@ -165,9 +176,23 @@ class WebInterface:
 
     def broadcast(self, data: dict):
         '''Broadcast data to all connected websockets'''
+        # Update history if needed
+        if data['command'] == 'log':
+            self.log_history.append({
+                'id': len(self.log_history),
+                'time': datetime.datetime.now().strftime('%H:%M:%S'),
+                'message': data['message']
+            })
+            if len(self.log_history) > 1000:
+                self.log_history.pop(0)
+        elif data['command'] == 'progress':
+            if 'clear' in data and data['clear']:
+                self.current_progress = None
+            else:
+                self.current_progress = data
+        
         def do_broadcast():
             for ws in self.websockets:
-                #print(f"sending {data}")
                 asyncio.create_task(ws.send_text(json.dumps(data)))
         self.loop.call_soon_threadsafe(do_broadcast)
 

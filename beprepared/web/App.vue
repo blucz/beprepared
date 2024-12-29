@@ -264,7 +264,11 @@ const openWebsocket = () => {
       console.log('Websocket data', event.data);
       const message = JSON.parse(event.data);
       console.log('Websocket message', message);
-      if (message.command == 'activate') {
+      if (message.command == 'history') {
+        // Restore history
+        log.value = message.logs;
+        progress.value = message.progress;
+      } else if (message.command == 'activate') {
         activate(message.applet, message.path, message.component);
       } else if (message.command == 'deactivate') {
         clearApplet();
