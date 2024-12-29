@@ -239,64 +239,91 @@ const openWebsocket = () => {
     websocket.close();
     websocket = null;
   }
-  websocket = new WebSocket(webSocketUrl);
-  websocket.onmessage = (event) => {
-    if (seq != websocketSeq) return;
-    console.log('Websocket data', event.data);
-    const message = JSON.parse(event.data);
-    console.log('Websocket message', message);
-    if (message.command == 'activate') {
-      activate(message.applet, message.path, message.component);
-    } else if (message.command == 'deactivate') {
-      clearApplet();
-    } else if (message.command == 'log') {
-      log.value.push({
-        ...message,
-        time: new Date().toLocaleTimeString()
-      });
-      // Auto-scroll to bottom if user hasn't scrolled up
-      nextTick(() => {
-        const terminal = document.querySelector('.terminal');
-        if (terminal && !userHasScrolled.value) {
-          // Force a reflow to ensure scrollHeight is accurate
-          terminal.style.display = 'none';
-          terminal.offsetHeight; // trigger reflow
-          terminal.style.display = '';
-          
-          nextTick(() => {
-            terminal.scrollTop = terminal.scrollHeight;
-          });
-        }
-      });
-    } else if (message.command == 'connect_log') {
-      logger_name.value = message.name;
-      log.value.length = 0;
-    } else if (message.command == 'disconnect_log') {
-      logger_name.value = null;
-      log.value.length = 0;
-    } else if (message.command == 'progress') {
-      if (message.clear) {
-        progress.value = null;
-      } else {
-        progress.value = message;
+  
+  // Add a small delay between connection attempts
+  setTimeout(() => {
+    websocket = new WebSocket(webSocketUrl);
+    
+    // Set a timeout for the connection
+    const connectionTimeout = setTimeout(() => {
+      if (websocket && websocket.readyState === WebSocket.CONNECTING) {
+        console.log("WebSocket connection timeout");
+        websocket.close();
       }
-    }
-  };
-  websocket.onopen = () => {
-    if (seq != websocketSeq) return;
-    //console.log('Websocket opened');
-    isConnected.value = true;
-  };
-  websocket.onclose = () => {
-    if (seq != websocketSeq) return;
-    //console.log('Websocket closed');
-    isConnected.value = false;
-    clearApplet()
-  };
-  websocket.onerror = (error) => {
-    if (seq != websocketSeq) return;
-    //console.error('Websocket error:', error);
-  };
+    }, 5000); // 5 second timeout
+
+    websocket.onopen = () => {
+      clearTimeout(connectionTimeout);
+      if (seq != websocketSeq) return;
+      console.log('WebSocket connection established');
+      isConnected.value = true;
+    };
+
+    websocket.onmessage = (event) => {
+      if (seq != websocketSeq) return;
+      console.log('Websocket data', event.data);
+      const message = JSON.parse(event.data);
+      console.log('Websocket message', message);
+      if (message.command == 'activate') {
+        activate(message.applet, message.path, message.component);
+      } else if (message.command == 'deactivate') {
+        clearApplet();
+      } else if (message.command == 'log') {
+        log.value.push({
+          ...message,
+          time: new Date().toLocaleTimeString()
+        });
+        // Auto-scroll to bottom if user hasn't scrolled up
+        nextTick(() => {
+          const terminal = document.querySelector('.terminal');
+          if (terminal && !userHasScrolled.value) {
+            // Force a reflow to ensure scrollHeight is accurate
+            terminal.style.display = 'none';
+            terminal.offsetHeight; // trigger reflow
+            terminal.style.display = '';
+            
+            nextTick(() => {
+              terminal.scrollTop = terminal.scrollHeight;
+            });
+          }
+        });
+      } else if (message.command == 'connect_log') {
+        logger_name.value = message.name;
+        log.value.length = 0;
+      } else if (message.command == 'disconnect_log') {
+        logger_name.value = null;
+        log.value.length = 0;
+      } else if (message.command == 'progress') {
+        if (message.clear) {
+          progress.value = null;
+        } else {
+          progress.value = message;
+        }
+      }
+    };
+    websocket.onclose = (event) => {
+      clearTimeout(connectionTimeout);
+      if (seq != websocketSeq) return;
+      console.log('WebSocket closed', event.code, event.reason);
+      isConnected.value = false;
+      clearApplet();
+      
+      // Attempt to reconnect after a delay unless we're shutting down
+      if (shouldBeConnected) {
+        setTimeout(() => {
+          if (shouldBeConnected) {
+            openWebsocket();
+          }
+        }, 1000); // 1 second delay before reconnecting
+      }
+    };
+
+    websocket.onerror = (error) => {
+      clearTimeout(connectionTimeout);
+      if (seq != websocketSeq) return;
+      console.error('WebSocket error:', error);
+    };
+  }, 500); // 500ms delay between connection attempts
 };
 
 const closeWebsocket = () => {
