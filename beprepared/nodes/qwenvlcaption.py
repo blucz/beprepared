@@ -3,6 +3,7 @@ import gc
 from typing import Optional, Literal
 
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+
 import torch
 from .utils import tqdm
 from PIL import Image
@@ -12,6 +13,8 @@ from beprepared.node import Node
 from beprepared.properties import CachedProperty, ComputedProperty
 from beprepared.nodes.convert_format import convert_image
 from qwen_vl_utils import process_vision_info
+
+QWENVL_IMAGE_SIZE = 768
 
 class QwenVLCaption(Node):
     '''Generates image captions using the Qwen 2 VL 7B model'''
@@ -63,8 +66,17 @@ class QwenVLCaption(Node):
             pil_images = []
             for image in batch_images:
                 path = self.workspace.get_path(image)
-                image = Image.open(path).convert('RGB')
-                pil_images.append(image)
+                img = Image.open(path).convert('RGB')
+                # Resize so shorter side matches Qwen-VL expected size
+                width, height = img.size
+                if width < height:
+                    new_width = QWENVL_IMAGE_SIZE
+                    new_height = int(height * (QWENVL_IMAGE_SIZE / width))
+                else:
+                    new_height = QWENVL_IMAGE_SIZE
+                    new_width = int(width * (QWENVL_IMAGE_SIZE / height))
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                pil_images.append(img)
 
             messages_batch = []
             text_batch = []
