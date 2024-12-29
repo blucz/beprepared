@@ -140,6 +140,8 @@ const canGoNext = computed(() =>
   !exited.value && 
   currentIndex.value <= images.value.length - 1 && 
   imageStatuses.value[images.value[currentIndex.value]?.id]);
+
+const showContinueButton = computed(() => done.value && !exited.value);
 const currentIndex = ref(0);
 const imageStatuses = ref({}); // { id: 'accepted' | 'rejected' }
 const done = ref(false);
@@ -234,6 +236,11 @@ const close = async () => {
 };
 
 const handleKeydown = (event) => {
+  // Prevent default behavior for all arrow keys
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+    event.preventDefault();
+  }
+  
   switch (event.key) {
     case 'ArrowUp':
     case 'w':
@@ -254,6 +261,11 @@ const handleKeydown = (event) => {
     case 'd':
     case 'D':
       nextImage();
+      break;
+    case 'Enter':
+      if (showContinueButton.value) {
+        close();
+      }
       break;
   }
 };
