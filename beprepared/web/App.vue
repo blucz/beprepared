@@ -52,6 +52,12 @@ import { ref, shallowRef, computed, onMounted, onBeforeUnmount, createVNode, ren
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
 import axios from 'axios';
 
+// Import all known applet components
+import HumanTag from './HumanTag.vue';
+import HumanFilter from './HumanFilter.vue';
+import Generic from './Generic.vue';
+
+
 console.log(import.meta.env);
 
 const baseUrl = import.meta.env.VITE_API_URL ?? '';
@@ -76,10 +82,19 @@ const activate = async (appletName, path, component) => {
     apiPath,
   }
 
-  import(`./${component}.vue`).then((module) => {
-    appletProps.value = props;
-    applet.value = defineAsyncComponent(() => Promise.resolve(module.default));
-  });
+  // Switch based on component name
+  switch(component) {
+    case 'HumanTag':
+      applet.value = HumanTag;
+      break;
+    case 'HumanFilter':
+      applet.value = HumanFilter;
+      break;
+    default:
+      applet.value = Generic;
+      break;
+  }
+  appletProps.value = props;
 }
 
 const close = () => {
