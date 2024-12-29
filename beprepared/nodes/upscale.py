@@ -2,7 +2,7 @@ from beprepared.node import Node
 from beprepared.dataset import Dataset
 from beprepared.workspace import Abort
 from beprepared.properties import CachedProperty, ConstProperty
-from tqdm import tqdm
+from .utils import tqdm
 from PIL import Image
 import numpy as np
 import cv2

@@ -3,7 +3,7 @@ from typing import Optional
 
 from transformers import MllamaForConditionalGeneration, AutoProcessor
 import torch
-from tqdm import tqdm
+from .utils import tqdm
 from PIL import Image
 
 from beprepared.node import Node 

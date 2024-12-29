@@ -4,7 +4,7 @@ from typing import Optional
 
 from transformers import AutoProcessor, AutoModelForCausalLM
 import torch
-from tqdm import tqdm
+from beprepared.nodes.utils import tqdm
 from PIL import Image
 import json
 

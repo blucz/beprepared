@@ -6,7 +6,7 @@
     </header>
 
     <!-- Main content area, which expands to fill available space -->
-    <main class="flex-grow-1 d-flex justify-content-center align-items-center bg-secondary">
+    <main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center bg-secondary">
       <div v-if='!isConnected'>
         <h2>beprepared!</h2>
       </div>
@@ -17,7 +17,30 @@
         </div>
         <div class="terminal-wrapper w-100 d-flex flex-column">
           <h2 class="text-center mb-2">{{ logger_name }}</h2>
-          <div class="terminal-container">
+          <div v-if="progress" class="progress-info mb-4">
+              <div class="progress-header">
+                <span class="progress-desc">{{ progress.desc }}</span>
+                <span class="progress-stats">
+                  {{ progress.n }}{{ progress.total ? '/' + progress.total : '' }} {{ progress.unit }}
+                  <span v-if="progress.rate" class="progress-rate">
+                    ({{ progress.rate.toFixed(1) }}/s)
+                  </span>
+                  <span v-if="progress.elapsed_str" class="progress-time">
+                    {{ progress.elapsed_str }}/{{ progress.remaining_str || '?' }}
+                  </span>
+                </span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar" role="progressbar" 
+                  :class="{ 'progress-bar-striped progress-bar-animated': !progress.total }"
+                  :style="{ width: progressPercent + '%' }" 
+                  :aria-valuenow="progress.n"
+                  aria-valuemin="0" 
+                  :aria-valuemax="progress.total || 100">
+                </div>
+              </div>
+            </div>
+          <div class="terminal-container" :style="{ minHeight: '45vh' }" v-if="log.length > 0">
             <div class="terminal bg-black rounded p-2" @scroll="handleScroll">
               <div v-for='entry in log' :key='entry.id' class="log-entry">
                 <span class="timestamp">[{{ entry.time }}]</span> {{ entry.message }}
@@ -50,17 +73,51 @@
   background: #354044;
 }
 .terminal-wrapper {
-  width: 95vw;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  min-width: 600px;
 }
 .terminal-container {
-  height: 45vh;
-  min-width: 800px;
+  width: 100%;
   border: 1px solid #30363d;
   border-radius: 6px;
   background: #0d1117;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.progress-info {
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+.progress-desc {
+  color: #e6e6e6;
+}
+.progress-stats {
+  color: #8b949e;
+}
+.progress-rate, .progress-time {
+  margin-left: 10px;
+  color: #6e7681;
+}
+.progress {
+  background-color: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar {
+  background-color: #238636;
+  transition: width 0.3s ease;
 }
 .terminal {
   height: 100%;
@@ -118,6 +175,26 @@ const appletProps = ref({});
 const log = ref([]);
 const logger_name = ref(null);
 const userHasScrolled = ref(false);
+const progress = ref(null);
+
+const formatTime = (seconds) => {
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  const minutes = Math.floor(seconds / 60);
+  seconds = Math.floor(seconds % 60);
+  if (minutes < 60) return `${minutes}m ${seconds}s`;
+  const hours = Math.floor(minutes / 60);
+  minutes = minutes % 60;
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
+
+const progressPercent = computed(() => {
+  if (!progress.value) return 0;
+  if (!progress.value.total) {
+    // Show indeterminate progress when no total
+    return 100;
+  }
+  return (progress.value.n / progress.value.total) * 100;
+});
 
 let shouldBeConnected = false;
 let websocket;
@@ -197,6 +274,12 @@ const openWebsocket = () => {
     } else if (message.command == 'disconnect_log') {
       logger_name.value = null;
       log.value.length = 0;
+    } else if (message.command == 'progress') {
+      if (message.clear) {
+        progress.value = null;
+      } else {
+        progress.value = message;
+      }
     }
   };
   websocket.onopen = () => {

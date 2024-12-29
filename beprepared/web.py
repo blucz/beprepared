@@ -43,8 +43,9 @@ class WebInterface:
     class LogHandler(logging.Handler):
         def __init__(self, name, web):
             super().__init__()
-            self.name = name
+            self.name = name 
             self.web = web
+            self.formatter = logging.Formatter('%(message)s')
         def emit(self, record):
             self.web.broadcast({
                 'command': 'log',
@@ -141,6 +142,8 @@ class WebInterface:
 
     def deactivate_applet(self, applet): 
         if self.applet == applet:
+            # Clear any existing progress first
+            self.broadcast({'command': 'progress', 'clear': True})
             self.applet = None
             self.applet_router.routes.clear()
             self.broadcast({'command': 'deactivate'})

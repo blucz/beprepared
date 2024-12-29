@@ -5,7 +5,7 @@ from beprepared.properties import CachedProperty
 from typing import Callable
 import asyncio
 from litellm import acompletion
-from tqdm import tqdm
+from .utils import tqdm
 
 class LLMCaptionVariations(Node):
     '''Generates variations of image captions using LLaMA 3.1 8B Instruct'''

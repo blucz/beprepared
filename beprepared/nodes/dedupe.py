@@ -4,7 +4,7 @@ from beprepared.dataset import Dataset
 from beprepared.properties import CachedProperty
 
 import numpy as np
-from tqdm import tqdm
+from .utils import tqdm
 from annoy import AnnoyIndex
 from pathlib import Path
 import hashlib

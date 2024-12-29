@@ -10,7 +10,7 @@ import torch
 from transformers import CLIPProcessor
 from aesthetics_predictor import AestheticsPredictorV1
 
-from tqdm import tqdm
+from .utils import tqdm
 
 class AestheticScore(Node):
     '''Computes an aesthetic score for each image in the dataset using the simple aesthetics predictor model.

@@ -1,6 +1,6 @@
 from nudenet import NudeDetector
 from typing import List
-from tqdm import tqdm
+from .utils import tqdm
 
 from beprepared.node import Node
 from beprepared.workspace import Workspace

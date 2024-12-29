@@ -1,7 +1,4 @@
-import os
-import random
-
-from tqdm import tqdm
+from .utils import tqdm
 
 from beprepared.node import Node
 from beprepared.web import Applet

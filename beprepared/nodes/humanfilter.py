@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset as TorchDataset, DataLoader
-from tqdm import tqdm
+from .utils import tqdm
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.utils import resample
 import numpy as np

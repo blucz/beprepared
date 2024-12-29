@@ -16,7 +16,7 @@ from PIL import Image
 import os
 import torchvision.transforms.functional as TVF
 from typing import Literal, Union
-from tqdm import tqdm
+from .utils import tqdm
 
 import base64
 import openai

@@ -9,7 +9,7 @@ import torch
 import numpy as np
 
 from transformers import CLIPProcessor, CLIPModel
-from tqdm import tqdm
+from .utils import tqdm
 
 class ClipEmbed(Node):
     '''Computes CLIP embeddings for each image in the dataset using the CLIP model.

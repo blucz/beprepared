@@ -4,7 +4,7 @@ from typing import Optional, Literal
 
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 import torch
-from tqdm import tqdm
+from .utils import tqdm
 from PIL import Image
 
 from beprepared.workspace import Workspace

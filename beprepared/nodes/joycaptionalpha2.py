@@ -11,7 +11,7 @@ from PIL import Image
 import os
 import torchvision.transforms.functional as TVF
 from typing import Literal, Union, List
-from tqdm import tqdm
+from .utils import tqdm
 
 CLIP_PATH = "google/siglip-so400m-patch14-384"
 CHECKPOINT_PATH = "cgrkzexw-599808"

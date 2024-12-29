@@ -1,7 +1,7 @@
 from io import BytesIO
 from PIL import Image as PILImage
 from beprepared import Image, Dataset, Node
-from tqdm import tqdm
+from .utils import tqdm
 
 from beprepared.properties import ConstProperty, CachedProperty
 

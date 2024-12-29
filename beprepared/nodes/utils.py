@@ -4,13 +4,51 @@ from beprepared.dataset import Dataset
 from beprepared.image import Image
 from beprepared.workspace import Abort
 import numpy as np
-from tqdm import tqdm
+from tqdm import tqdm as _tqdm
 import time
+import threading
+from contextlib import contextmanager
 
-from typing import List, Any, Callable
+from typing import List, Any, Callable, Optional
 import random
 import shutil
-import textwrap 
+import textwrap
+from beprepared.workspace import Workspace
+
+class WebTqdm(_tqdm):
+    """tqdm that can print to terminal and web interface"""
+    def __init__(self, *args, **kwargs):
+        self.web = Workspace.current.web if Workspace.current else None
+        self._last_line = ""
+        self._progress_active = False
+        super().__init__(*args, **kwargs)
+        
+    def display(self, msg=None, pos=None):
+        super().display(msg, pos)
+        if self.web:
+            if not self.disable and not self.total or self.n < self.total:
+                # Only send progress if not disabled and not complete
+                msg = {
+                    'command': 'progress',
+                    'desc': self.desc or '',
+                    'n': self.n,
+                    'total': self.total if hasattr(self, 'total') else None,
+                    'unit': self.unit,
+                    'rate': self.format_dict.get('rate', 0),
+                    'elapsed': self.format_dict.get('elapsed', 0),
+                    'remaining': self.format_dict.get('remaining', 0),
+                    'elapsed_str': self.format_dict.get('elapsed_s', ''),
+                    'remaining_str': self.format_dict.get('remaining_s', ''),
+                }
+                self.web.broadcast(msg)
+                self._progress_active = True
+            elif self._progress_active:  # Clear progress when done
+                self.web.broadcast({'command': 'progress', 'clear': True})
+                self._progress_active = False
+
+def tqdm(*args, **kwargs):
+    """Drop-in replacement for tqdm that also sends updates to web interface"""
+    return WebTqdm(*args, **kwargs)
 
 class Concat(Node):
     '''Concatenates multiple datasets into one.
