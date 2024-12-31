@@ -119,11 +119,3 @@ more friendly to smaller GPUs. Most likely this will involve tuning batch sizes 
 It is currently not a goal of beprepared to support collaborative use cases--we are focused on making individuals as
 efficient as possible, as this is the most common case for diffusion model fine-tuning. 
 
-## Roadmap
-
-- Improve performance of VLMs
-- Improve multi-GPU support (within one node)
-- Support data augmentation nodes like flip, caption variations, etc
-- Support local LLMs for LLMTransform instead of just the API-based litellm abstraction
-- Support <24GB GPUs 
-
