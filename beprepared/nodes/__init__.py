@@ -21,3 +21,4 @@ from beprepared.nodes.dedupe import ExactDedupe, FuzzyDedupe
 from beprepared.nodes.clip import ClipEmbed
 from beprepared.nodes.aesthetics import AestheticScore
 from beprepared.nodes.florence2caption import Florence2Caption, Florence2Task
+from beprepared.nodes.molmocaption import MolmoCaption
