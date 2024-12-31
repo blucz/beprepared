@@ -33,12 +33,9 @@ class WebTqdm(_tqdm):
                     'desc': self.desc or '',
                     'n': self.n,
                     'total': self.total if hasattr(self, 'total') else None,
-                    'unit': self.unit,
                     'rate': self.format_dict.get('rate', 0),
                     'elapsed': self.format_dict.get('elapsed', 0),
-                    'remaining': self.format_dict.get('remaining', 0),
-                    'elapsed_str': self.format_dict.get('elapsed_s', ''),
-                    'remaining_str': self.format_dict.get('remaining_s', ''),
+                    'elapsed': self.format_dict.get('elapsed', 0),
                 }
                 self.web.broadcast(msg)
                 self._progress_active = True

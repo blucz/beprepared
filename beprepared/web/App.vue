@@ -5,28 +5,30 @@
       <img src='/beprepared.jpg' alt='beprepared' height='60'/>
     </header>
 
-    <!-- Main content area, which expands to fill available space -->
-    <main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center bg-secondary">
-      <div v-if='!isConnected'>
+    <!-- Main content area -->
+    <main class="flex-grow-1 d-flex flex-column bg-secondary p-3">
+      <div v-if='!isConnected' class="text-center my-4">
         <h2>beprepared!</h2>
       </div>
 
-      <div v-if='isConnected && !applet'>
-        <div v-if='!logger_name' class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <div v-if='isConnected && !applet' class="container-fluid px-3">
+        <div v-if='!logger_name' class="text-center my-4">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </div>
-        <div class="terminal-wrapper w-100 d-flex flex-column">
+        <div v-else class="terminal-wrapper">
           <h2 class="text-center mb-2">{{ logger_name }}</h2>
           <div v-if="progress" class="progress-info mb-4">
               <div class="progress-header">
                 <span class="progress-desc">{{ progress.desc }}</span>
                 <span class="progress-stats">
-                  {{ progress.n }}{{ progress.total ? '/' + progress.total : '' }} {{ progress.unit }}
+                  {{ progress.n }}{{ progress.total ? '/' + progress.total : '' }}
                   <span v-if="progress.rate" class="progress-rate">
-                    ({{ progress.rate.toFixed(1) }}/s)
+                    &#8227; {{ progress.rate >= 1 ? `${progress.rate.toFixed(2)} it/s` : `${(1/progress.rate).toFixed(2)}s/it` }}
                   </span>
-                  <span v-if="progress.elapsed_str" class="progress-time">
-                    {{ progress.elapsed_str }}/{{ progress.remaining_str || '?' }}
+                  <span v-if="progress.total && progress.rate" class="progress-time">
+                    &#8227; ETA: {{ formatTime((progress.total - progress.n) / progress.rate) }}
                   </span>
                 </span>
               </div>
@@ -40,8 +42,8 @@
                 </div>
               </div>
             </div>
-          <div class="terminal-container" :style="{ minHeight: '45vh' }" v-if="log.length > 0">
-            <div class="terminal bg-black rounded p-2" @scroll="handleScroll">
+          <div class="terminal-container" v-if="log.length > 0" @scroll="handleScroll">
+            <div class="terminal bg-black rounded p-2">
               <div v-for='entry in log' :key='entry.id' class="log-entry">
                 <span class="timestamp">[{{ entry.time }}]</span> {{ entry.message }}
               </div>
@@ -73,9 +75,9 @@
   background: #354044;
 }
 .terminal-wrapper {
-  width: calc(100% - 32px);
-  margin: 0 16px;
-  min-width: 600px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .terminal-container {
   width: 100%;
@@ -83,6 +85,9 @@
   border-radius: 6px;
   background: #0d1117;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  max-height: calc(1.3em * 40); /* 40 rows of text */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .progress-info {
   width: 100%;
@@ -121,7 +126,9 @@
 }
 .terminal {
   height: 100%;
+  width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
   line-height: 1.3;
@@ -131,6 +138,8 @@
   padding: 1px 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 .timestamp {
   color: #6e7681;
@@ -178,13 +187,15 @@ const userHasScrolled = ref(false);
 const progress = ref(null);
 
 const formatTime = (seconds) => {
-  if (seconds < 60) return `${seconds.toFixed(1)}s`;
-  const minutes = Math.floor(seconds / 60);
-  seconds = Math.floor(seconds % 60);
-  if (minutes < 60) return `${minutes}m ${seconds}s`;
-  const hours = Math.floor(minutes / 60);
-  minutes = minutes % 60;
-  return `${hours}h ${minutes}m ${seconds}s`;
+  if (!seconds || isNaN(seconds)) return '??:??';
+  seconds = Math.floor(seconds);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
 const progressPercent = computed(() => {
@@ -240,94 +251,90 @@ const openWebsocket = () => {
     websocket = null;
   }
   
-  // Add a small delay between connection attempts
-  setTimeout(() => {
-    websocket = new WebSocket(webSocketUrl);
-    
-    // Set a timeout for the connection
-    const connectionTimeout = setTimeout(() => {
-      if (websocket && websocket.readyState === WebSocket.CONNECTING) {
-        console.log("WebSocket connection timeout");
-        websocket.close();
-      }
-    }, 5000); // 5 second timeout
+  websocket = new WebSocket(webSocketUrl);
+  
+  // Set a timeout for the connection
+  const connectionTimeout = setTimeout(() => {
+    if (websocket && websocket.readyState === WebSocket.CONNECTING) {
+      console.log("WebSocket connection timeout");
+      websocket.close();
+    }
+  }, 5000); // 5 second timeout
 
-    websocket.onopen = () => {
-      clearTimeout(connectionTimeout);
-      if (seq != websocketSeq) return;
-      console.log('WebSocket connection established');
-      isConnected.value = true;
-    };
+  websocket.onopen = () => {
+    clearTimeout(connectionTimeout);
+    if (seq != websocketSeq) return;
+    console.log('WebSocket connection established');
+    isConnected.value = true;
+    // Clear any pending reconnection attempts
+    websocketSeq = seq;
+  };
 
-    websocket.onmessage = (event) => {
-      if (seq != websocketSeq) return;
-      console.log('Websocket data', event.data);
-      const message = JSON.parse(event.data);
-      console.log('Websocket message', message);
-      if (message.command == 'history') {
-        // Restore history
-        log.value = message.logs;
-        progress.value = message.progress;
-      } else if (message.command == 'activate') {
-        activate(message.applet, message.path, message.component);
-      } else if (message.command == 'deactivate') {
-        clearApplet();
-      } else if (message.command == 'log') {
-        log.value.push({
-          ...message,
-          time: new Date().toLocaleTimeString()
-        });
-        // Auto-scroll to bottom if user hasn't scrolled up
-        nextTick(() => {
-          const terminal = document.querySelector('.terminal');
-          if (terminal && !userHasScrolled.value) {
-            // Force a reflow to ensure scrollHeight is accurate
-            terminal.style.display = 'none';
-            terminal.offsetHeight; // trigger reflow
-            terminal.style.display = '';
-            
-            nextTick(() => {
-              terminal.scrollTop = terminal.scrollHeight;
-            });
-          }
-        });
-      } else if (message.command == 'connect_log') {
-        logger_name.value = message.name;
-        log.value.length = 0;
-      } else if (message.command == 'disconnect_log') {
-        logger_name.value = null;
-        log.value.length = 0;
-      } else if (message.command == 'progress') {
-        if (message.clear) {
-          progress.value = null;
-        } else {
-          progress.value = message;
-        }
-      }
-    };
-    websocket.onclose = (event) => {
-      clearTimeout(connectionTimeout);
-      if (seq != websocketSeq) return;
-      console.log('WebSocket closed', event.code, event.reason);
-      isConnected.value = false;
+  websocket.onmessage = (event) => {
+    if (seq != websocketSeq) return;
+    console.log('Websocket data', event.data);
+    const message = JSON.parse(event.data);
+    console.log('Websocket message', message);
+    if (message.command == 'history') {
+      // Restore history
+      log.value = message.logs;
+      progress.value = message.progress;
+    } else if (message.command == 'activate') {
+      activate(message.applet, message.path, message.component);
+    } else if (message.command == 'deactivate') {
       clearApplet();
-      
-      // Attempt to reconnect after a delay unless we're shutting down
-      if (shouldBeConnected) {
-        setTimeout(() => {
-          if (shouldBeConnected) {
-            openWebsocket();
+    } else if (message.command == 'log') {
+      log.value.push({
+        ...message,
+        time: new Date().toLocaleTimeString()
+      });
+      // Auto-scroll to bottom if user hasn't scrolled up
+      nextTick(() => {
+        const terminal = document.querySelector('.terminal-container');
+        if (terminal) {
+          const isScrolledToBottom = Math.abs(terminal.scrollHeight - terminal.clientHeight - terminal.scrollTop) < 1;
+          if (!userHasScrolled.value || isScrolledToBottom) {
+            terminal.scrollTop = terminal.scrollHeight;
           }
-        }, 1000); // 1 second delay before reconnecting
+        }
+      });
+    } else if (message.command == 'connect_log') {
+      logger_name.value = message.name;
+      log.value.length = 0;
+    } else if (message.command == 'disconnect_log') {
+      logger_name.value = null;
+      log.value.length = 0;
+    } else if (message.command == 'progress') {
+      if (message.clear) {
+        progress.value = null;
+      } else {
+        progress.value = message;
       }
-    };
+    }
+  };
+  websocket.onclose = (event) => {
+    clearTimeout(connectionTimeout);
+    if (seq != websocketSeq) return;
+    console.log('WebSocket closed', event.code, event.reason);
+    isConnected.value = false;
+    clearApplet();
+    
+    // Only reconnect if this was the most recent connection attempt
+    if (shouldBeConnected && seq === websocketSeq) {
+      setTimeout(() => {
+        if (shouldBeConnected && seq === websocketSeq) {
+          console.log('Attempting to reconnect WebSocket...');
+          openWebsocket();
+        }
+      }, 1000); // 1 second delay before reconnecting
+    }
+  };
 
-    websocket.onerror = (error) => {
-      clearTimeout(connectionTimeout);
-      if (seq != websocketSeq) return;
-      console.error('WebSocket error:', error);
-    };
-  }, 500); // 500ms delay between connection attempts
+  websocket.onerror = (error) => {
+    clearTimeout(connectionTimeout);
+    if (seq != websocketSeq) return;
+    console.error('WebSocket error:', error);
+  };
 };
 
 const closeWebsocket = () => {
@@ -349,7 +356,11 @@ onMounted(() => {
 const handleScroll = (event) => {
   const terminal = event.target;
   const isScrolledToBottom = Math.abs(terminal.scrollHeight - terminal.clientHeight - terminal.scrollTop) < 1;
-  userHasScrolled.value = !isScrolledToBottom;
+  if (!isScrolledToBottom) {
+    userHasScrolled.value = true;
+  } else {
+    userHasScrolled.value = false;
+  }
 };
 
 onBeforeUnmount(() => {

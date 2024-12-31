@@ -48,9 +48,16 @@ class WebInterface:
             self.web = web
             self.formatter = logging.Formatter('%(message)s')
         def emit(self, record):
+            # Strip 'workspace' or 'workspace.' prefix from logger name
+            logger_name = self.name
+            if logger_name.startswith('workspace.'):
+                logger_name = logger_name[10:]  # Remove 'workspace.'
+            elif logger_name == 'workspace':
+                logger_name = ''
+                
             self.web.broadcast({
                 'command': 'log',
-                'name': self.name,
+                'name': logger_name,
                 'level': record.levelname,
                 'message': self.format(record)
             })
@@ -81,16 +88,26 @@ class WebInterface:
         # websocket at /ws
         @self.app.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
-            self.log.info("websocket connected")
-            await websocket.accept()
-            self.websockets.append(websocket)
-            self.on_connect(websocket)
+            print("websocket connect attmempt")
             try:
-                while True:
-                    data = await websocket.receive_text()
-                    self.on_recv(websocket, data)
-            except Exception:
-                self.websockets.remove(websocket)
+                # Set a timeout for the connection attempt
+                await asyncio.wait_for(websocket.accept(), timeout=2.0)
+                self.log.info("websocket connected")
+                self.websockets.append(websocket)
+                self.on_connect(websocket)
+                try:
+                    while True:
+                        data = await websocket.receive_text()
+                        self.on_recv(websocket, data)
+                except Exception as e:
+                    self.log.info(f"websocket connection closed: {str(e)}")
+                    self.websockets.remove(websocket)
+            except asyncio.TimeoutError:
+                self.log.error("websocket connection timed out")
+                await websocket.close()
+            except Exception as e:
+                self.log.error(f"websocket connection failed: {str(e)}")
+                await websocket.close()
 
         # create subrouter at /applet
         self.applet_router = FastAPI()
@@ -117,9 +134,16 @@ class WebInterface:
     def connect_log(self, name, logger):
         '''Connect a logger to the web interface'''
         #self.log.info(f"connect_log: {logger.name}")
+        # Strip 'workspace' or 'workspace.' prefix from logger name
+        logger_name = logger.name
+        if logger_name.startswith('workspace.'):
+            logger_name = logger_name[10:]  # Remove 'workspace.'
+        elif logger_name == 'workspace':
+            logger_name = ''
+            
         self.broadcast({
             'command': 'connect_log', 
-            'name': logger.name
+            'name': logger_name
         })
         self.log_active.add(name)
         self.log_handlers[name] = self.log_handlers.get(name) or self.LogHandler(name, self)
@@ -130,9 +154,16 @@ class WebInterface:
         #self.log.info(f"disconnect_log: {logger.name}")
         logger.removeHandler(self.log_handlers[name])
         self.log_active.remove(name)
+        # Strip 'workspace' or 'workspace.' prefix from logger name
+        logger_name = logger.name
+        if logger_name.startswith('workspace.'):
+            logger_name = logger_name[10:]  # Remove 'workspace.'
+        elif logger_name == 'workspace':
+            logger_name = ''
+            
         self.broadcast({
             'command': 'disconnect_log', 
-            'name': logger.name
+            'name': logger_name
         })
 
     def activate(self):
@@ -188,7 +219,7 @@ class WebInterface:
         elif data['command'] == 'progress':
             if 'clear' in data and data['clear']:
                 self.current_progress = None
-            else:
+            elif 'n' in data and 'total' in data and 'rate' in data:
                 self.current_progress = data
         
         def do_broadcast():
