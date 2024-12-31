@@ -4,7 +4,7 @@
 #     https://huggingface.co/spaces/fancyfeast/joy-caption-alpha-one/blob/main/app.py
 #
     
-from beprepared.workspace import Workspace
+from beprepared.workspace import Workspace, Abort
 from beprepared.node import Node
 from beprepared.properties import CachedProperty, ComputedProperty
 
@@ -20,6 +20,7 @@ from .utils import tqdm
 
 import base64
 import openai
+import gc
 
 CLIP_PATH = "google/siglip-so400m-patch14-384"
 BASE_MODEL_PATH = "meta-llama/Meta-Llama-3.1-8B"
@@ -187,6 +188,11 @@ class JoyCaptionAlphaOne(Node):
                 clean_caption = caption.rstrip('!')
                 image._joycaption.value = clean_caption
                 self.log.info(f"{self.workspace.get_path(image)} => {clean_caption}")
+
+        # Cleanup
+        del self.clip_model, self.tokenizer, self.text_model, self.image_adapter
+        gc.collect()
+        torch.cuda.empty_cache()
 
         return dataset
 
