@@ -364,7 +364,7 @@ const handleScroll = (event) => {
 };
 
 onBeforeUnmount(() => {
-  closeWebsocket();
   shouldBeConnected = false;
+  closeWebsocket();
 });
 </script>
