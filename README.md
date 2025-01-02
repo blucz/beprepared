@@ -32,7 +32,7 @@ disarray.
 Existing user interfaces for tasks that require a human in the loop, such as filtering scraped images, or 
 manually tagging images are clumsy at best. In many cases they are built in sluggish frameworks like Gradio,
 lack keyboard shortcuts, are not mobile friendly, and are not non-destructive. We don't need beautiful 
-interfaces to work on image datasets, but we do need fast interfaces with keyboard support to move quickly
+interfaces to work on image datasets, but we do need efficient interfaces to move quickly
 through the work.
 
 Humans are human. If the tooling is bad, the datasets will be bad. If the datasets are bad, the models trained with 
@@ -68,7 +68,6 @@ Install beprepared using poetry, then define a workflow like this:
           )
           workspace.run()
 
-          See 
 **[See More Examples](https://blucz.github.io/beprepared/examples)**
 
 When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
@@ -92,7 +91,7 @@ Significantly more complex workflows are possible, and beprepared is designed to
 - Flexible workflow definitions using a Python based DSL
 - Non-destructive workflow execution
 - Caching of intermediate results to avoid duplicate work
-- Automatic Captioning using JoyCaption, Llama 3.2, BLIP3, xGen-mm, or GPT-4o
+- Automatic Captioning using JoyCaption, Llama 3.2, BLIP3, xGen-mm, GPT-4o, Gemini, Molmo, and Florence2
 - Human-in-the-loop filtering and tagging
 - Nudity detection using NudeNet
 - Improving captions using LLMs
@@ -113,9 +112,6 @@ It is not a goal of this project to help people preparing pre-training datasets 
 That would require a fundamentally more complex distributed architecture and would make it more difficult
 for the community to work with and improve this tool.
 
-This project is currently developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make this software
-more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
-
-It is currently not a goal of beprepared to support collaborative use cases--we are focused on making individuals as
-efficient as possible, as this is the most common case for diffusion model fine-tuning. 
+This project is currently developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make 
+this software more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
 
