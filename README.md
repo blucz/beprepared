@@ -64,10 +64,34 @@ $ beprepared db clear "clip_embed*"     # Clear specific cached data
 The CLI has three main commands:
 
 ### run - Execute Workflow Files
-Run complete workflow files that define your data preparation pipeline:
+Run complete workflow files that define your data preparation pipeline. For example:
+
 ```bash
 $ beprepared run workflow.py
 ```
+
+A typical workflow file looks like this:
+
+    # workflow.py
+    (
+        Load("/path/to/dog_photos")
+        >> FilterBySize(min_edge=512)    # Remove small images
+        >> HumanFilter                   # Opens web UI for manual filtering
+        >> ConvertFormat("JPEG")         # Standardize format
+        >> JoyCaptionAlphaOne           # Auto-caption images
+        >> HumanTag(tags=["labrador", "golden retriever", "poodle"])  # Manual tagging
+        >> Save                          # Save to output/
+    )
+
+When you run this workflow, beprepared will:
+1. Launch a web interface when human input is needed (filtering/tagging)
+2. Cache all operations to avoid repeating work
+3. Save the processed dataset to the output directory
+
+Each step is cached, so if you run the workflow again:
+- Previously filtered/tagged images won't need human review
+- Previously captioned images won't need recaptioning
+- Only new or modified images will be processed
 
 ### exec - Quick Operations
 Execute one-line operations without creating a workflow file:
@@ -90,29 +114,6 @@ $ beprepared db clear "temp_*"   # Clear specific cached data
 
 The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
 
-## Quick Example
-
-Create a workflow file:
-
-    # workflow.py
-    (
-        Load("/path/to/dog_photos")
-        >> FilterBySize(min_edge=512)
-        >> HumanFilter
-        >> ConvertFormat("JPEG")
-        >> JoyCaptionAlphaOne
-        >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
-        >> Save
-    )
-
-Run it:
-
-    $ beprepared run workflow.py
-
-The workflow will:
-1. Launch a web interface when human input is needed (filtering/tagging)
-2. Cache all operations to avoid repeating work
-3. Save the processed dataset to the output directory
 
 **[See More Examples](https://blucz.github.io/beprepared/examples)**
 
