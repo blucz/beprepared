@@ -88,7 +88,7 @@ class HumanFilter(Node):
     def eval(self, dataset):
         images_to_filter = []
         for image in dataset.images:
-            image.passed_human_filter = CachedProperty('humanfilter', self.domain, image)
+            image.passed_human_filter = CachedProperty('humanfilter', image, domain=self.domain)
             if not image.passed_human_filter.has_value:
                 images_to_filter.append(image)
 
@@ -396,8 +396,8 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
             raise Abort("SmartHumanFilter requires images to have clip embeddings. Add a ClipEmbedding step.")
 
         for image in dataset.images:
-            image.passed_human_filter = CachedProperty('humanfilter', self.domain, image)
-            image.passed_smart_filter = CachedProperty('smartfilter', self.domain, image)
+            image.passed_human_filter = CachedProperty('humanfilter', image, domain=self.domain)
+            image.passed_smart_filter = CachedProperty('smartfilter', image, domain=self.domain)
 
         embedding_size = len(dataset.images[0].clip.value)
         hyperparameters = {
@@ -409,7 +409,7 @@ Actual Accepted    {tp:5}      {fn:5}      {cm[1,2]:5}
             'patience': self.patience,
             'dropout': self.dropout,
         }
-        prop_model = CachedProperty('smartfilter', self.domain, self.model_version, hyperparameters)
+        prop_model = CachedProperty('smartfilter', self.model_version, hyperparameters, domain=self.domain)
         if prop_model.has_value:
             model_file = Workspace.current.get_object_path(prop_model.value)
             model = SimpleMLP(input_size=embedding_size, dropout=self.dropout)

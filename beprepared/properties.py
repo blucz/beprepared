@@ -60,10 +60,11 @@ def cache_key_tostring(x):
     return json.dumps(x, sort_keys=True, separators=(',','='))
 
 class CachedProperty(Property[T]):
-    def __init__(self, scope, *segs):
+    def __init__(self, scope, *segs, domain=None):
         super().__init__()
         self._dirty_has_value = True
         self._dirty_value     = True
+        self.domain = domain
         if len(segs) == 0:
             self.key = scope
         else:
@@ -73,7 +74,7 @@ class CachedProperty(Property[T]):
     def has_value(self) -> bool:
         if self._dirty_has_value:
             ws = Workspace.current
-            self._has_value = ws.db.has_prop(self.key)
+            self._has_value = ws.db.has_prop(self.key, self.domain)
             self._dirty_has_value = False
         return self._has_value
 
@@ -81,7 +82,7 @@ class CachedProperty(Property[T]):
     def value(self) -> T:
         if self._dirty_value:
             ws = Workspace.current
-            self._value = ws.db.get_prop(self.key)
+            self._value = ws.db.get_prop(self.key, self.domain)
             self._has_value = self._value is not None
             self._dirty_value = False
             self._dirty_has_value = False
@@ -92,7 +93,7 @@ class CachedProperty(Property[T]):
         self._value = value
         self._has_value = True
         ws = Workspace.current
-        ws.db.put_prop(self.key, value)
+        ws.db.put_prop(self.key, value, self.domain)
 
     def __repr__(self):
         return f"<CachedProperty {self.key} {self._value}>"

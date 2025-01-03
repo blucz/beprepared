@@ -1,6 +1,7 @@
 import os 
 import sqlite3
 import pickle
+import logging
 from urllib.parse import urlparse
 from beprepared.utils import copy_or_hardlink
 from beprepared.logging import configure_default_logger
@@ -14,15 +15,11 @@ from beprepared.web import WebInterface
 from typing import List, Dict, Callable, Any, TypeVar, Generic
 
 class Database:
-    def __init__(self, path) -> None:
+    def __init__(self, log, path) -> None:
+        self.log = log
         os.makedirs(path, exist_ok=True)
         self.tls_db = threading.local()
         self.path = path
-
-        # Make things faster
-        cursor = self.db.cursor()
-        cursor.execute('PRAGMA synchronous = NORMAL')
-        cursor.execute('PRAGMA journal_mode = WAL')
 
         self.initialize_schema()
 
@@ -30,18 +27,120 @@ class Database:
     def db(self):
         if not hasattr(self.tls_db, 'db'):
             self.tls_db.db = sqlite3.connect(os.path.join(self.path, 'db.sqlite3'))
+
+            # Make things faster
+            cursor = self.tls_db.db.cursor()
+            cursor.execute('PRAGMA synchronous = NORMAL')
+            cursor.execute('PRAGMA journal_mode = WAL')
+            self.tls_db.db.commit()
         return self.tls_db.db
 
     def initialize_schema(self):
-        cursor = self.db.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS property_cache (
-                key          TEXT PRIMARY KEY,
-                value        BLOB,
-                last_updated TIMESTAMP
-            )
-        ''')
-        self.db.commit()
+        self.log.info('Initializing database schema')
+        cursor = None
+        try:
+            cursor = self.db.cursor()
+            
+            # Create migrations table if it doesn't exist
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Get current schema version
+            cursor.execute('SELECT MAX(version) FROM migrations')
+            result = cursor.fetchone()
+            current_version = result[0] if result and result[0] is not None else 0
+            self.log.info(f'Current database schema version: {current_version}')
+            
+            # Apply migrations in order
+            if current_version < 1:
+                self.log.info('Applying migration to version 1: Creating property_cache table')
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS property_cache (
+                        key          TEXT PRIMARY KEY,
+                        value        BLOB,
+                        last_updated TIMESTAMP
+                    )
+                ''')
+                cursor.execute('INSERT INTO migrations (version) VALUES (1)')
+                current_version = 1
+                self.log.info('Migration to version 1 complete')
+
+            if current_version < 2:
+                self.log.info('Applying migration to version 2: Adding domain column and migrating keys')
+
+                cursor.execute('ALTER TABLE property_cache RENAME TO property_cache_v1')
+
+                # Create a new table with value+domain as primary key
+                cursor.execute('''
+                    CREATE TABLE property_cache (
+                        key          TEXT,
+                        domain       TEXT,
+                        value        BLOB,
+                        last_updated TIMESTAMP,
+                        PRIMARY KEY (key, domain)
+                    )
+                ''')
+
+                # Copy data from old table to new table
+                cursor.execute('''
+                    INSERT INTO property_cache (key, domain, value, last_updated)
+                    SELECT key, NULL, value, last_updated FROM property_cache_v1
+                ''')
+                
+                # Migrate humanfilter and humantag keys
+                keys_to_delete = []
+                for prefix in ['humanfilter', 'humantag']:
+                    self.log.info(f'Migrating {prefix} keys to include domain')
+                    # Get all matching keys
+                    cursor.execute(f"SELECT key, value, last_updated FROM property_cache WHERE key LIKE '{prefix}(%'")
+                    rows = cursor.fetchall()
+                    
+                    for (old_key, value, last_updated) in rows:
+                        # Extract parts from old format: prefix("domain","hash")
+                        if not old_key.startswith(prefix + '('):
+                            continue
+                            
+                        parts = old_key[len(prefix)+1:-1].split(',')
+                        if len(parts) != 2:
+                            continue
+                            
+                        domain = parts[0].strip('"')
+                        hash_part = parts[1].strip('"')
+                        
+                        # Create new key format: prefix("hash")
+                        new_key = f'{prefix}("{hash_part}")'
+
+                        keys_to_delete.append(old_key)
+                        
+                        # Insert new key with domain, handling potential conflicts
+                        cursor.execute('''
+                            INSERT OR REPLACE INTO property_cache (key, value, domain, last_updated)
+                            VALUES (?, ?, ?, ?)
+                        ''', (new_key, value, domain, last_updated))
+                
+                # Delete old keys
+                for key in keys_to_delete:
+                    cursor.execute('DELETE FROM property_cache WHERE key = ? AND DOMAIN IS NULL', (key,))
+
+                # Drop the old table 
+                cursor.execute('DROP TABLE property_cache_v1')
+                
+                cursor.execute('INSERT INTO migrations (version) VALUES (2)')
+                current_version = 2
+                self.log.info('Migration to version 2 complete')
+            
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            logging.error(f'Error during schema initialization: {str(e)}')
+            raise
+        finally:
+            if cursor:
+                cursor.close()
 
     # get image path for <hash>.{jpg,png,...} where path is <first 2 chars>/<second 2 chars>/<hash.{jpg,png,...}
     def get_object_path(self, hash: str) -> str:
@@ -69,24 +168,35 @@ class Database:
         with open(path, 'rb') as f:
             return f.read()
 
-    def get_prop(self, cachekey: str) -> Any | None:
-        cursor = self.db.cursor()
-        val = cursor.execute('SELECT value FROM property_cache WHERE key = ?', (cachekey,)).fetchone()
-        if val is None:
-            return None
-        return pickle.loads(val[0])
+    def get_prop(self, cachekey: str, domain: str | None = None) -> Any | None:
+        try:
+            cursor = self.db.cursor()
+            val = cursor.execute('SELECT value FROM property_cache WHERE key = ? AND (domain IS ? OR ? IS NULL)', 
+                               (cachekey, domain, domain)).fetchone()
+            if val is None:
+                return None
+            return pickle.loads(val[0])
+        finally:
+            cursor.close()
 
-    def has_prop(self, cachekey: str) -> bool:
-        cursor = self.db.cursor()
-        return cursor.execute('SELECT 1 FROM property_cache WHERE key = ?', (cachekey,)).fetchone() is not None 
+    def has_prop(self, cachekey: str, domain: str | None = None) -> bool:
+        try:
+            cursor = self.db.cursor()
+            return cursor.execute('SELECT 1 FROM property_cache WHERE key = ? AND (domain IS ? OR ? IS NULL)', 
+                                (cachekey, domain, domain)).fetchone() is not None
+        finally:
+            cursor.close()
 
-    def put_prop(self, cachekey: str, value: Any) -> None:
-        cursor = self.db.cursor()
-        cursor.execute('''
-            INSERT OR REPLACE INTO property_cache (key, value, last_updated)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-        ''', (cachekey, pickle.dumps(value)))
-        self.db.commit()
+    def put_prop(self, cachekey: str, value: Any, domain: str | None = None) -> None:
+        try:
+            cursor = self.db.cursor()
+            cursor.execute('''
+                INSERT OR REPLACE INTO property_cache (key, value, domain, last_updated)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (cachekey, pickle.dumps(value), domain))
+            self.db.commit()
+        finally:
+            cursor.close()
 
     def close(self) -> None:
         self.db.close()
@@ -161,19 +271,19 @@ class Workspace:
     current = None
 
     def __init__(self, dir=None, logger=None, port=8989) -> None:
+        if logger:
+            self.log = logger
+        else:
+            self.log = configure_default_logger()
+
         self.dir = dir or os.getcwd()
         os.makedirs(self.dir, exist_ok=True)
-        self.db = Database(os.path.join(self.dir, '_beprepared'))
+        self.db = Database(self.log, os.path.join(self.dir, '_beprepared'))
         self.nodes = []
         self.cache = DownloadCache()
         self.tmp_dir = os.path.join(self.dir, 'tmp')
 
         os.makedirs(self.tmp_dir, exist_ok=True)
-
-        if logger:
-            self.log = logger
-        else:
-            self.log = configure_default_logger()
 
         self.web = WebInterface(self.log, debug=False, port=port)
 

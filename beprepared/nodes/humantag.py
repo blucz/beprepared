@@ -124,7 +124,7 @@ class HumanTag(Node):
         tagged = []
 
         for image in dataset.images:
-            image.human_tags = CachedProperty('humantag', self.domain, image)
+            image.human_tags = CachedProperty('humantag', image, domain=self.domain)
             setattr(image, self.target_prop, ComputedProperty(lambda image: image.human_tags.value['tags'] if image.human_tags.has_value else []))
 
         for image in dataset.images:
