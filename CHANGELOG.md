@@ -1,5 +1,11 @@
 # beprepared!
 
+## 0.2.2
+
+- Implement beprepared cli 
+- Change database format to make domain a first class concept
+- Update documentation to reflect the CLI
+
 ## 0.1.2
 
 - Support JoyCaption Alpha 2
