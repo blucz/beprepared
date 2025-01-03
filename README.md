@@ -83,6 +83,8 @@ A typical workflow file looks like this:
         >> Save                          # Save to output/
     )
 
+**[See More Examples](https://blucz.github.io/beprepared/examples)**
+
 When you run this workflow, beprepared will:
 1. Launch a web interface when human input is needed (filtering/tagging)
 2. Cache all operations to avoid repeating work
@@ -113,9 +115,6 @@ $ beprepared db clear "temp_*"   # Clear specific cached data
 ## Documentation
 
 The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
-
-
-**[See More Examples](https://blucz.github.io/beprepared/examples)**
 
 When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
 then ingest them into the workspace. Next, it will hit the HumanSelection step, and launch a web based UI 
