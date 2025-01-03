@@ -100,7 +100,7 @@ class WebInterface:
                         data = await websocket.receive_text()
                         self.on_recv(websocket, data)
                 except Exception as e:
-                    self.log.info(f"websocket connection closed: {str(e)}")
+                    #self.log.info(f"websocket connection closed: {str(e)}")
                     self.websockets.remove(websocket)
             except asyncio.TimeoutError:
                 self.log.error("websocket connection timed out")

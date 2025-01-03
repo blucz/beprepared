@@ -8,11 +8,12 @@ from tqdm import tqdm as _tqdm
 import time
 import threading
 from contextlib import contextmanager
-
+from colorama import Fore, Style
 from typing import List, Any, Callable, Optional
 import random
 import shutil
 import textwrap
+import os
 from beprepared.workspace import Workspace
 
 class WebTqdm(_tqdm):

@@ -2,9 +2,11 @@
 
 ## How to run
 
-To run the examples, install beprepared, and create a workspace directory, and place `beprepared.py` in that directory.
+To run the examples, save them as Python files (e.g. `workflow.py`) and run them using:
 
-Then run `python beprepared.py` to execute the workflow.
+```bash
+beprepared run workflow.py
+```
 
 You will almost always use a `Load` node to import images and a `Save` node to write out the cleaned data set. What comes in 
 between can be simple or complex.
@@ -12,7 +14,7 @@ between can be simple or complex.
 When you invoke a `Human*` node like `HumanFilter` or `HumanTag`, beprepared will launch a web-based interface on port 8989. 
 If there are un-filtered or un-tagged images, you will be prompted to go to the web interface and perform filtering.
 
-By convention, `Save` will place output images in the `output/` directory. For each image, there will be a compantion `.txt` file
+By convention, `Save` will place output images in the `output/` directory. For each image, there will be a companion `.txt` file
 containing that image's caption. There will also be a `.json` file which contains all of the image's metadata. Finally, there is an
 `index.html` which allows you to view the images and their metadata in a web browser.
 
@@ -21,78 +23,58 @@ containing that image's caption. There will also be a `.json` file which contain
 
 This is a simple example of how to use beprepared to caption images based on a trigger word.
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_me")
-            >> FilterBySize(min_edge=512)   
-            >> ConvertFormat("JPEG")
-            >> Dedupe
-            >> SetCaption("ohwx person")
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_me") 
+        >> FilterBySize(min_edge=512)   
+        >> ConvertFormat("JPEG")
+        >> Dedupe
+        >> SetCaption("ohwx person")
+        >> Save
+    )
 
 ## Auto-captioning using JoyCaption
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_me")
-            >> FilterBySize(min_edge=512)
-            >> ConvertFormat("JPEG")
-            >> JoyCaptionAlphaOne
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_me")
+        >> FilterBySize(min_edge=512)
+        >> ConvertFormat("JPEG")
+        >> JoyCaptionAlphaOne
+        >> Save
+    )
 
 ## Fuzzy deduplication
 
 This example shows how to use FuzzyDedupe to remove duplicate images based on CLIP embeddings.
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_me")
-            >> ClipEmbed
-            >> FuzzyDedupe
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_me")
+        >> ClipEmbed
+        >> FuzzyDedupe
+        >> Save
+    )
 
 ## Filtering based on Aesthetic Score
 
 This example shows how to use select the best 100 albums based on their aesthetic score.
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_me")
-            >> AestheticScore
-            >> Sorted(lambda image: image.aesthetic_score.value, reverse=True)
-            >> Take(100)
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_me")
+        >> AestheticScore
+        >> Sorted(lambda image: image.aesthetic_score.value, reverse=True)
+        >> Take(100)
+        >> Save
+    )
 
 ## Filtering out NSFW content
 
 This example shows how to filter NSFW content using NudeNet
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/images")
-            >> NudeNet
-            >> Filter(lambda image: not image.has_nudity)
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/images")
+        >> NudeNet
+        >> Filter(lambda image: not image.has_nudity)
+        >> Save
+    )
 
 ## Filter images manually then caption with GPT4o
 
@@ -100,54 +82,43 @@ To run this example, you will need to set `OPENAI_API_KEY` in your environment.
 
     from beprepared import *
 
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_me")
-            >> FilterBySize(min_edge=512)
-            >> ConvertFormat("JPEG")
-            >> HumanFilter
-            >> GPT4oCaption
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_me")
+        >> FilterBySize(min_edge=512)
+        >> ConvertFormat("JPEG")
+        >> HumanFilter
+        >> GPT4oCaption
+        >> Save
+    )
 
 ## Manually tag images
 
-    from beprepared import *
-
-    with Workspace(".") as workspace:
-        (
-            Load("/path/to/photos_of_dogs")
-            >> FilterBySize(min_edge=512)
-            >> ConvertFormat("JPEG")
-            >> HumanFilter
-            >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
-            >> Apply(lambda image: image.caption.value = ', '.join(['dog'] + image.tags.value))
-            >> Save
-        )
-        workspace.run()
+    (
+        Load("/path/to/photos_of_dogs")
+        >> FilterBySize(min_edge=512)
+        >> ConvertFormat("JPEG")
+        >> HumanFilter
+        >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
+        >> Apply(lambda image: image.caption.value = ', '.join(['dog'] + image.tags.value))
+        >> Save
+    )
 
 ## Captioning a mix of SFW and NSFW content using various VLMs
 
 Some VLMs are more NSFW-friendly than others. This workflow shows how to split the workflow and use different
 caption strategies for NSFW content.
 
-    from beprepared import *
+    all = (
+        Load("/path/to/images")
+        >> FilterBySize(min_edge=512)
+        >> ConvertFormat("JPEG")
+        >> NudeNet
+    )
 
-    with Workspace(".") as workspace:
-        all = (
-            Load("/path/to/images")
-            >> FilterBySize(min_edge=512)
-            >> ConvertFormat("JPEG")
-            >> NudeNet
-        )
+    with_nudity    = all >> Filter(lambda image: image.has_nudity) >> JoyCaptionAlphaOne
+    without_nudity = all >> Filter(lambda image: not image.has_nudity) >> GPT4oCaption
 
-        with_nudity    = all >> Filter(lambda image: image.has_nudity) >> JoyCaptionAlphaOne
-        without_nudity = all >> Filter(lambda image: not image.has_nudity) >> GPT4oCaption
-
-        Concat(with_nudity, without_nudity) >> Save
-
-        workspace.run()
+    Concat(with_nudity, without_nudity) >> Save
 
 ## Captioning using multiple VLMs 
 
@@ -159,30 +130,28 @@ LLM APIs are accessed using [litellm](https://github.com/BerriAI/litellm), and a
 
     from beprepared import *
 
-    with Workspace(".") as workspace:
-        '''
-        (
-            Load("/path/to/images")
-            >> FilterBySize(min_edge=512)
-            >> ConvertFormat("JPEG")
-            >> JoyCaptionAlphaOne(target_prop='joycaption')
-            >> GPT4oCaption(target_prop='gpt4ocaption')
-            >> XGenMMCaption(target_prop='xgenmmcaption')
-            >> QwenVLCaption(target_prop='qwenvlcaption')
-            >> LlamaCaption(target_prop='llamacaption')
-            >> LLMCaptionTransform('together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
-                                   lambda image: f"""
-    Multiple VLMs have captioned this image. These are their results: 
+    (
+        Load("/path/to/images")
+        >> FilterBySize(min_edge=512)
+        >> ConvertFormat("JPEG")
+        >> JoyCaptionAlphaOne(target_prop='joycaption')
+        >> GPT4oCaption(target_prop='gpt4ocaption')
+        >> XGenMMCaption(target_prop='xgenmmcaption')
+        >> QwenVLCaption(target_prop='qwenvlcaption')
+        >> LlamaCaption(target_prop='llamacaption')
+        >> LLMCaptionTransform('together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+                               lambda image: f"""
+Multiple VLMs have captioned this image. These are their results: 
 
-    - JoyCaption: {image.joycaption.value}
-    - GPT4oCaption: {image.gpt4ocaption.value}
-    - XGenMMCaption: {image.xgenmmcaption.value}
-    - QwenVLCaption: {image.qwenvlcaption.value}
-    - LlamaCaption: {image.llamacaption.value}
+- JoyCaption: {image.joycaption.value}
+- GPT4oCaption: {image.gpt4ocaption.value}
+- XGenMMCaption: {image.xgenmmcaption.value}
+- QwenVLCaption: {image.qwenvlcaption.value}
+- LlamaCaption: {image.llamacaption.value}
 
-    Please generate a final caption for this image based on the above information. Your response should be the caption, with no extra text or boilerplate.
-                                   """.strip(),
-                                   target_prop='caption')
-            >> Save
-        )
+Please generate a final caption for this image based on the above information. Your response should be the caption, with no extra text or boilerplate.
+                               """.strip(),
+                               target_prop='caption')
+        >> Save
+    )
 

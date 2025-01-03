@@ -1,7 +1,8 @@
-import os 
+import os
 import sqlite3
 import pickle
 import logging
+from fnmatch import fnmatch
 from urllib.parse import urlparse
 from beprepared.utils import copy_or_hardlink
 from beprepared.logging import configure_default_logger
@@ -198,6 +199,107 @@ class Database:
         finally:
             cursor.close()
 
+    def list_props(self, pattern: str = None, domain: str = None) -> List[tuple]:
+        """List properties in cache, optionally filtered by glob pattern and domain
+        
+        Args:
+            pattern: Optional glob pattern to filter properties by (e.g. "human*", "*.jpg")
+            domain: Optional domain to filter properties by
+        """
+        try:
+            cursor = self.db.cursor()
+            query = 'SELECT key, domain, value FROM property_cache'
+            params = []
+            
+            conditions = []
+            if domain is not None:
+                conditions.append('domain IS ?')
+                params.append(domain)
+                
+            if conditions:
+                query += ' WHERE ' + ' AND '.join(conditions)
+                
+            cursor.execute(query, params)
+            results = [(key, domain, pickle.loads(value)) for key, domain, value in cursor.fetchall()]
+            
+            # Apply glob pattern filtering if specified
+            if pattern:
+                results = [(key, domain, value) for key, domain, value in results if fnmatch(key, pattern)]
+                
+            return results
+        finally:
+            cursor.close()
+            
+    def count_props(self, pattern: str, domain: str = None) -> int:
+        """Count properties matching glob pattern and optional domain
+        
+        Returns:
+            int: Number of matching properties
+        """
+        try:
+            cursor = self.db.cursor()
+            query = 'SELECT key FROM property_cache'
+            params = []
+            
+            conditions = []
+            if domain is not None:
+                conditions.append('domain IS ?')
+                params.append(domain)
+                
+            if conditions:
+                query += ' WHERE ' + ' AND '.join(conditions)
+                
+            cursor.execute(query, params)
+            keys = [row[0] for row in cursor.fetchall()]
+            
+            # Count keys matching the glob pattern
+            return sum(1 for key in keys if fnmatch(key, pattern))
+        finally:
+            cursor.close()
+
+    def clear_props(self, pattern: str, domain: str = None) -> int:
+        """Delete properties matching glob pattern and optional domain
+        
+        Returns:
+            int: Number of properties deleted
+        """
+        try:
+            # First get matching keys
+            cursor = self.db.cursor()
+            query = 'SELECT key FROM property_cache'
+            params = []
+            
+            conditions = []
+            if domain is not None:
+                conditions.append('domain IS ?')
+                params.append(domain)
+                
+            if conditions:
+                query += ' WHERE ' + ' and '.join(conditions)
+                
+            cursor.execute(query, params)
+            keys = [row[0] for row in cursor.fetchall()]
+            
+            # Filter keys by pattern
+            keys_to_delete = [key for key in keys if fnmatch(key, pattern)]
+            
+            if not keys_to_delete:
+                return 0
+                
+            # Delete matching keys
+            placeholders = ','.join('?' * len(keys_to_delete))
+            delete_query = f'DELETE FROM property_cache WHERE key IN ({placeholders})'
+            if domain is not None:
+                delete_query += ' AND domain IS ?'
+                keys_to_delete.append(domain)
+                
+            cursor.execute(delete_query, keys_to_delete)
+            deleted = cursor.rowcount
+            self.db.commit()
+            return deleted
+        finally:
+            cursor.close()
+
     def close(self) -> None:
         self.db.close()
 
@@ -318,6 +420,59 @@ class Workspace:
 
     def put_object(self, bytes_or_path: bytes | str) -> str:
         return self.db.put_object(bytes_or_path)
+
+    def list_props(self, prefix: str = None, domain: str = None) -> List[tuple]:
+        """List properties in cache, optionally filtered by prefix and domain
+        
+        Args:
+            prefix: Optional prefix to filter properties by
+            domain: Optional domain to filter properties by
+            
+        Returns:
+            List of tuples containing (key, domain, value) for each property
+        """
+        return self.db.list_props(prefix, domain)
+
+    def count_props(self, prefix: str, domain: str = None) -> int:
+        """Count properties matching prefix and optional domain
+        
+        Args:
+            prefix: String prefix to match properties to count
+            domain: Optional domain to restrict counting to
+            
+        Returns:
+            int: Number of matching properties
+        """
+        return self.db.count_props(prefix, domain)
+
+    def clear_props(self, prefix: str, domain: str = None) -> int:
+        """Delete properties matching prefix and optional domain
+        
+        Args:
+            prefix: String prefix to match properties to delete
+            domain: Optional domain to restrict deletion to
+            
+        Returns:
+            int: Number of properties deleted
+        """
+        return self.db.clear_props(prefix, domain)
+
+    @classmethod
+    def clear_database(cls, workspace_dir: str) -> bool:
+        """Delete the database for the given workspace directory
+        
+        Args:
+            workspace_dir: Path to workspace directory
+            
+        Returns:
+            bool: True if database was deleted, False if it didn't exist
+        """
+        import shutil
+        db_path = os.path.join(workspace_dir or os.getcwd(), '_beprepared')
+        if os.path.exists(db_path):
+            shutil.rmtree(db_path)
+            return True
+        return False
 
     def run(self):
         # start web interface

@@ -40,11 +40,51 @@ them will be bad. If the models are bad, the consumers of those models will make
 give up. beprepared is designed to improve every stage of that process by making the data preparation process as 
 efficient as possible.
 
-## Installation
+## Command Line Interface
 
-beprepared is available on PyPI, and can be installed using pip:
+beprepared provides a powerful command-line interface for running workflows and managing your workspace:
 
-    $ pip install beprepared
+```bash
+# Install from PyPI
+$ pip install beprepared
+
+# Run a workflow file
+$ beprepared run workflow.py
+
+# Execute a quick operation
+$ beprepared exec "Load('images') >> FilterBySize(min_edge=512) >> Info"
+$ beprepared exec "Load('images') >> AestheticScore >> Sort >> Take(100) >> Save"
+
+# Manage the workspace database
+$ beprepared db list                    # List all cached properties
+$ beprepared db list "aesthetic_score*" # List specific properties
+$ beprepared db clear "clip_embed*"     # Clear specific cached data
+```
+
+The CLI has three main commands:
+
+### run - Execute Workflow Files
+Run complete workflow files that define your data preparation pipeline:
+```bash
+$ beprepared run workflow.py
+```
+
+### exec - Quick Operations
+Execute one-line operations without creating a workflow file:
+```bash
+$ beprepared exec "Load('raw_images') >> HumanFilter >> Save('filtered')"
+$ beprepared exec "Load('dataset') >> JoyCaptionAlphaOne >> Save"
+$ beprepared exec "Load('photos') >> NudeNet >> Info"
+```
+
+### db - Manage the Workspace
+View and manage cached operations in your workspace:
+```bash
+$ beprepared db list              # List all properties
+$ beprepared db list "*caption*"  # Search for specific properties
+$ beprepared db clear            # Clear all cached data
+$ beprepared db clear "temp_*"   # Clear specific cached data
+```
 
 ## Documentation
 
@@ -52,21 +92,27 @@ The full documentation is available at [https://blucz.github.io/beprepared](http
 
 ## Quick Example
 
-Install beprepared using poetry, then define a workflow like this: 
+Create a workflow file:
 
-      from beprepared import *
+    # workflow.py
+    (
+        Load("/path/to/dog_photos")
+        >> FilterBySize(min_edge=512)
+        >> HumanFilter
+        >> ConvertFormat("JPEG")
+        >> JoyCaptionAlphaOne
+        >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
+        >> Save
+    )
 
-      with Workspace("mydataset") as workspace:
-          (
-              Load("/path/to/dog_photos")
-              >> FilterBySize(min_edge=512)
-              >> HumanFilter
-              >> ConvertFormat("JPEG")
-              >> JoyCaptionAlphaOne
-              >> HumanTag(tags=["labrador", "golden retriever", "poodle"])
-              >> Save
-          )
-          workspace.run()
+Run it:
+
+    $ beprepared run workflow.py
+
+The workflow will:
+1. Launch a web interface when human input is needed (filtering/tagging)
+2. Cache all operations to avoid repeating work
+3. Save the processed dataset to the output directory
 
 **[See More Examples](https://blucz.github.io/beprepared/examples)**
 

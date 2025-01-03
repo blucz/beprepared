@@ -8,6 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
+tomli = "^2.0.1"
 torchvision = "^0.19.1"
 torch = "^2.4.1"
 tqdm = "^4.66.5"
@@ -24,6 +25,7 @@ fastapi = "^0.115.0"
 uvicorn = {extras = ["standard"], version = "^0.32.1"}
 opencv-python = "^4.10.0.84"
 numba = "^0.60.0"
+colorama = "^0.4.6"
 realesrgan = "^0.3.0"
 scikit-learn = "^1.5.2"
 annoy = "^1.17.3"
@@ -40,3 +42,6 @@ mkdocs-material = "^9.5.41"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+beprepared = "beprepared.cli:main"
