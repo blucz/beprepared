@@ -80,8 +80,6 @@ This example shows how to filter NSFW content using NudeNet
 
 To run this example, you will need to set `OPENAI_API_KEY` in your environment.
 
-    from beprepared import *
-
     (
         Load("/path/to/photos_of_me")
         >> FilterBySize(min_edge=512)
@@ -127,8 +125,6 @@ This workflow shows how to use multiple VLMs to caption an image, and then combi
 To run this example, you will need to set `OPENAI_API_KEY` and `TOGETHER_AI_API_KEY` in your environment. 
 
 LLM APIs are accessed using [litellm](https://github.com/BerriAI/litellm), and any model string supported by `litellm` should work here.
-
-    from beprepared import *
 
     (
         Load("/path/to/images")
