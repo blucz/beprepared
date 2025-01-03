@@ -98,6 +98,22 @@ Each step is cached, so if you run the workflow again:
 - Previously captioned images won't need recaptioning
 - Only new or modified images will be processed
 
+When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
+then ingest them into the workspace. Next, it will hit the HumanSelection step, and launch a web based UI 
+with a single-task user interface focused solely on filtering images. Once all images have been filtered by a human, 
+it can move on to the next step.
+
+Each step along the way is cached, on an image-by-image basis. So if you run the workflow again, it will not need to
+re-present the web interface for selection, nor will it need to re-caption images that have already been captioned. 
+During human-in-the-loop steps, changes are committed to the database on every click, so you will _never_ lose work.
+
+If you add new images to the source directory and run it again, only new images will be processed, using cached values
+for the others. If you change the workflow, the system will preserve as much work as possible, avoiding expensive 
+human-in-the-loop operations, or ML model invocations that have already been run.
+
+Significantly more complex workflows are possible, and beprepared is designed to support them. See 
+[the docs](https://blucz.github.io/beprepared/examples) for more examples.
+
 This is the main way to use beprepared.
 
 ### exec - Quick Operations
@@ -124,22 +140,6 @@ $ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached dat
 ## Documentation
 
 The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
-
-When this workflow is executed, beprepared will first walk the `/path/to/dog_photos` directory to discover images, 
-then ingest them into the workspace. Next, it will hit the HumanSelection step, and launch a web based UI 
-with a single-task user interface focused solely on filtering images. Once all images have been filtered by a human, 
-it can move on to the next step.
-
-Each step along the way is cached, on an image-by-image basis. So if you run the workflow again, it will not need to
-re-present the web interface for selection, nor will it need to re-caption images that have already been captioned. 
-During human-in-the-loop steps, changes are committed to the database on every click, so you will _never_ lose work.
-
-If you add new images to the source directory and run it again, only new images will be processed, using cached values
-for the others. If you change the workflow, the system will preserve as much work as possible, avoiding expensive 
-human-in-the-loop operations, or ML model invocations that have already been run.
-
-Significantly more complex workflows are possible, and beprepared is designed to support them. See 
-[the docs](https://blucz.github.io/beprepared/examples) for more examples.
 
 ## Features
 
