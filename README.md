@@ -131,7 +131,7 @@ View and manage cached operations in your workspace:
 
 ```bash
 $ beprepared db list                                 # List all properties
-$ beprepared db list "*caption*"                     # Search for specific properties
+$ beprepared db list "llm*"                          # List specific properties
 $ beprepared db clear                                # Clear all cached data
 $ beprepared db clear "gemini*"                      # Clear specific cached data
 $ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached data
