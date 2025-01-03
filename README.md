@@ -63,7 +63,7 @@ $ beprepared db clear "clip_embed*"     # Clear specific cached data
 
 The CLI has three main commands:
 
-### run - Execute Workflow Files
+### `beprepared run` - Execute Workflow Files
 
 Run complete workflow files that define your data preparation pipeline. For example:
 
@@ -116,7 +116,7 @@ Significantly more complex workflows are possible, and beprepared is designed to
 
 This is the main way to use beprepared.
 
-### exec - Quick Operations
+### `beprepared exec` - Quick Operations
 
 Execute one-line operations without creating a workflow file:
 ```bash
@@ -125,7 +125,7 @@ $ beprepared exec "Load('dataset') >> JoyCaptionAlphaOne >> Save"
 $ beprepared exec "Load('photos') >> NudeNet >> Info"
 ```
 
-### db - Manage the Workspace (advanced)
+### `beprepared db` - Manage the Workspace (advanced)
 
 View and manage cached operations in your workspace:
 
