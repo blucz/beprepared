@@ -137,10 +137,6 @@ $ beprepared db clear "gemini*"                      # Clear specific cached dat
 $ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached data
 ```
 
-## Documentation
-
-The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
-
 ## Features
 
 - Flexible workflow definitions using a Python based DSL
@@ -157,6 +153,10 @@ The full documentation is available at [https://blucz.github.io/beprepared](http
 - Precise and Fuzzy (CLIP-based) image deduplication
 - Aesthetic scoring
 - Collection operations like Map, Apply, Filter, Sort, Shuffle, Concat, and Random Sampling
+
+## Documentation
+
+The full documentation is available at [https://blucz.github.io/beprepared](https://blucz.github.io/beprepared)
 
 ## Limitations
 
