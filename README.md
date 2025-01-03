@@ -64,6 +64,7 @@ $ beprepared db clear "clip_embed*"     # Clear specific cached data
 The CLI has three main commands:
 
 ### run - Execute Workflow Files
+
 Run complete workflow files that define your data preparation pipeline. For example:
 
 ```bash
@@ -86,16 +87,21 @@ A typical workflow file looks like this:
 **[See More Examples](https://blucz.github.io/beprepared/examples)**
 
 When you run this workflow, beprepared will:
+
 1. Launch a web interface when human input is needed (filtering/tagging)
 2. Cache all operations to avoid repeating work
 3. Save the processed dataset to the output directory
 
 Each step is cached, so if you run the workflow again:
+
 - Previously filtered/tagged images won't need human review
 - Previously captioned images won't need recaptioning
 - Only new or modified images will be processed
 
+This is the main way to use beprepared.
+
 ### exec - Quick Operations
+
 Execute one-line operations without creating a workflow file:
 ```bash
 $ beprepared exec "Load('raw_images') >> HumanFilter >> Save('filtered')"
@@ -103,13 +109,16 @@ $ beprepared exec "Load('dataset') >> JoyCaptionAlphaOne >> Save"
 $ beprepared exec "Load('photos') >> NudeNet >> Info"
 ```
 
-### db - Manage the Workspace
+### db - Manage the Workspace (advanced)
+
 View and manage cached operations in your workspace:
+
 ```bash
-$ beprepared db list              # List all properties
-$ beprepared db list "*caption*"  # Search for specific properties
-$ beprepared db clear            # Clear all cached data
-$ beprepared db clear "temp_*"   # Clear specific cached data
+$ beprepared db list                                 # List all properties
+$ beprepared db list "*caption*"                     # Search for specific properties
+$ beprepared db clear                                # Clear all cached data
+$ beprepared db clear "gemini*"                      # Clear specific cached data
+$ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached data
 ```
 
 ## Documentation
