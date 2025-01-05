@@ -11,7 +11,7 @@ from beprepared.properties import CachedProperty, ComputedProperty
 
 class MolmoCaption(Node):
     '''Generates image captions using the Molmo-7B-D-0924 model'''
-    DEFAULT_PROMPT = "Write a detailed description of this image"
+    DEFAULT_PROMPT = "Describe the contents and style of this image. Do not make inferences or draw conclusions, simply describe what is there without bias."
 
     def __init__(self,
                  target_prop: str = 'caption',
