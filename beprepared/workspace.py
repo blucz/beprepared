@@ -220,12 +220,19 @@ class Database:
                 query += ' WHERE ' + ' AND '.join(conditions)
                 
             cursor.execute(query, params)
-            results = [(key, domain, pickle.loads(value)) for key, domain, value in cursor.fetchall()]
+            results = []
             
-            # Apply glob pattern filtering if specified
-            if pattern:
-                results = [(key, domain, value) for key, domain, value in results if fnmatch(key, pattern)]
-                
+            for key, prop_domain, value in cursor.fetchall():
+                if pattern is not None and not fnmatch(key, pattern):
+                    continue
+                    
+                try:
+                    deserialized_value = pickle.loads(value)
+                    results.append((key, prop_domain, deserialized_value))
+                except Exception as e:
+                    self.log.warning(f"Failed to deserialize property {key} in domain {prop_domain}: {str(e)}")
+                    continue
+                    
             return results
         finally:
             cursor.close()
@@ -299,6 +306,56 @@ class Database:
             return deleted
         finally:
             cursor.close()
+
+    def import_props(self, source_db_path: str, pattern: str = None, domain: str = None) -> int:
+        """Import properties from another workspace database
+        
+        Args:
+            source_db_path: Path to source workspace's _beprepared directory
+            pattern: Optional pattern to filter which properties to import
+            domain: Optional domain to filter which properties to import
+            
+        Returns:
+            int: Number of properties imported
+        """
+        source_db = Database(self.log, source_db_path)
+        try:
+            imported = 0
+            
+            # Get properties from source database
+            props = source_db.list_props(pattern, domain)
+            if not props:
+                return 0
+            
+            # First pass - collect all object hashes that need copying
+            needed_objects = set()
+            for key, prop_domain, value in props:
+                if hasattr(value, 'objectid') and hasattr(value.objectid, 'value'):
+                    needed_objects.add(value.objectid.value)
+                    
+            if needed_objects:
+                source_objects_dir = os.path.join(source_db_path, 'objects')
+                dest_objects_dir = os.path.join(self.db.path, 'objects')
+                os.makedirs(dest_objects_dir, exist_ok=True)
+                
+                for obj_hash in tqdm(needed_objects, desc="Copying objects", unit="obj"):
+                    # Reconstruct object path: <first 2 chars>/<second 2 chars>/<hash>
+                    rel_path = os.path.join(obj_hash[:2], obj_hash[2:4], obj_hash)
+                    src = os.path.join(source_objects_dir, rel_path)
+                    dst = os.path.join(dest_objects_dir, rel_path)
+                    
+                    if os.path.exists(src) and not os.path.exists(dst):
+                        os.makedirs(os.path.dirname(dst), exist_ok=True)
+                        copy_or_hardlink(src, dst)
+            
+            # Import properties
+            for key, prop_domain, value in tqdm(props, desc="Importing properties", unit="prop"):
+                self.put_prop(key, value, prop_domain)
+                imported += 1
+                
+            return imported
+        finally:
+            source_db.close()
 
     def close(self) -> None:
         self.db.close()
@@ -421,17 +478,17 @@ class Workspace:
     def put_object(self, bytes_or_path: bytes | str) -> str:
         return self.db.put_object(bytes_or_path)
 
-    def list_props(self, prefix: str = None, domain: str = None) -> List[tuple]:
-        """List properties in cache, optionally filtered by prefix and domain
+    def list_props(self, pattern: str = None, domain: str = None) -> List[tuple]:
+        """List properties in cache, optionally filtered by glob pattern and domain
         
         Args:
-            prefix: Optional prefix to filter properties by
+            pattern: Optional glob pattern to filter properties by (e.g. "human*", "*.jpg")
             domain: Optional domain to filter properties by
             
         Returns:
             List of tuples containing (key, domain, value) for each property
         """
-        return self.db.list_props(prefix, domain)
+        return self.db.list_props(pattern, domain)
 
     def count_props(self, prefix: str, domain: str = None) -> int:
         """Count properties matching prefix and optional domain
@@ -456,6 +513,38 @@ class Workspace:
             int: Number of properties deleted
         """
         return self.db.clear_props(prefix, domain)
+
+    def import_props(self, source_db_path: str, pattern: str = None, domain: str = None) -> int:
+        """Import properties from another workspace database
+        
+        Args:
+            source_db_path: Path to source workspace's _beprepared directory
+            pattern: Optional pattern to filter which properties to import
+            domain: Optional domain to filter which properties to import
+            
+        Returns:
+            int: Number of properties imported
+        """
+        source_db = Database(self.log, source_db_path)
+        imported = 0
+        
+        try:
+            props = source_db.list_props(pattern, domain)
+            if not props:
+                return 0
+                
+            with tqdm(total=len(props), desc="Importing properties", unit="prop") as pbar:
+                for key, prop_domain, value in props:
+                    try:
+                        self.db.put_prop(key, value, prop_domain)
+                        imported += 1
+                    except Exception as e:
+                        self.log.warning(f"Failed to import property {key}: {str(e)}")
+                    pbar.update(1)
+                    
+            return imported
+        finally:
+            source_db.close()
 
     @classmethod
     def clear_database(cls, workspace_dir: str) -> bool:

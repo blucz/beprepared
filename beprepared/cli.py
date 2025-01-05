@@ -7,7 +7,9 @@ import numpy as np
 import json
 import re
 import textwrap
-from beprepared.workspace import Workspace
+from beprepared.workspace import Workspace, Database
+from beprepared.utils import copy_or_hardlink
+from tqdm import tqdm
 from typing import Any
 from colorama import Fore, Style
 
@@ -191,7 +193,7 @@ def main():
     
     # db list command
     list_parser = db_subparsers.add_parser('list', help='List cached properties')
-    list_parser.add_argument('pattern', nargs='?', help='Only show properties matching this pattern')
+    list_parser.add_argument('pattern', nargs='?', help='Only show properties matching this glob pattern (e.g. "human*", "*.jpg")')
     list_parser.add_argument('-d', '--domain', help='Only show properties for this domain')
     
     # db clear command
@@ -199,6 +201,12 @@ def main():
     clear_parser.add_argument('pattern', nargs='?', help='Delete properties matching this pattern')
     clear_parser.add_argument('-d', '--domain', help='Only clear properties for this domain')
     clear_parser.add_argument('-f', '--force', action='store_true', help='Force deletion without confirmation')
+
+    # db import command
+    import_parser = db_subparsers.add_parser('import', help='Import properties from another workspace')
+    import_parser.add_argument('source', nargs='+', help='Source workspace directory (or directories)')
+    import_parser.add_argument('pattern', nargs='?', help='Only import properties matching this pattern')
+    import_parser.add_argument('-d', '--domain', help='Only import properties for this domain')
     
     if len(sys.argv) == 1:
         parser.print_help()
@@ -219,7 +227,7 @@ def main():
         
         if args.db_command == 'list':
             with Workspace(dir=workspace_dir) as workspace:
-                props = workspace.list_props(prefix=args.pattern or '*', domain=args.domain)
+                props = workspace.list_props(pattern=args.pattern or '*', domain=args.domain)
                 if not props:
                     print("No matching properties found.")
                 else:
@@ -278,6 +286,53 @@ def main():
                         
                 deleted = workspace.clear_props(pattern, args.domain)
                 print(f"Deleted {deleted} properties matching pattern '{pattern}'{domain_str}.")
+                
+        elif args.db_command == 'import':
+            with Workspace(dir=workspace_dir) as workspace:
+                total_imported = 0
+                for source_dir in args.source:
+                    if not os.path.exists(source_dir):
+                        print(f"Error: Source directory '{source_dir}' not found")
+                        continue
+                        
+                    source_db_path = os.path.join(source_dir, '_beprepared')
+                    if not os.path.exists(source_db_path):
+                        print(f"Error: No beprepared database found in '{source_dir}'")
+                        continue
+                        
+                    try:
+                        # Copy objects directory tree if it exists
+                        source_objects_dir = os.path.join(source_db_path, 'objects')
+                        if os.path.exists(source_objects_dir):
+                            dest_objects_dir = os.path.join(workspace.db.path, 'objects')
+                            os.makedirs(dest_objects_dir, exist_ok=True)
+
+                            # Count total files for progress bar
+                            total_files = sum([len(files) for _, _, files in os.walk(source_objects_dir)])
+                            if total_files > 0:
+                                print(f"\nCopying objects from {source_dir}...")
+                                with tqdm(total=total_files, desc="Copying objects", unit="obj") as pbar:
+                                    for root, _, files in os.walk(source_objects_dir):
+                                        rel_path = os.path.relpath(root, source_objects_dir)
+                                        dest_root = os.path.join(dest_objects_dir, rel_path)
+                                        os.makedirs(dest_root, exist_ok=True)
+                                        for f in files:
+                                            src = os.path.join(root, f)
+                                            dst = os.path.join(dest_root, f)
+                                            if not os.path.exists(dst):
+                                                copy_or_hardlink(src, dst)
+                                            pbar.update(1)
+
+                        print(f"\nImporting properties from {source_dir}...")
+                        imported = workspace.import_props(source_db_path, args.pattern, args.domain)
+                            
+                        total_imported += imported
+                        print(f"Imported {imported} properties from {source_dir}")
+                    except Exception as e:
+                        print(f"Error importing from {source_dir}: {str(e)}")
+                        
+                if total_imported > 0:
+                    print(f"\nTotal properties imported: {total_imported}")
 
 if __name__ == '__main__':
     main()
