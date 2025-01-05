@@ -93,7 +93,7 @@ class HumanFilter(Node):
                 images_to_filter.append(image)
 
         if len(images_to_filter) == 0:
-            self.log.info("All images already have been filtered, skipping")
+            self.log.info(f"All {len(dataset.images)} images already have been filtered, skipping [domain={self.domain}]")
             dataset.images = [image for image in dataset.images if image.passed_human_filter.value]
             return dataset
 
