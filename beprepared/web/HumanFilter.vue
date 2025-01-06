@@ -2,8 +2,26 @@
   <div id="app" class="bg-dark text-white h-100 w-100">
     <div class="container text-center mb-4 pt-4">
       <h1>Want to keep this image?</h1>
-      <div v-if="domain !== 'default'" class="domain-label text-muted mb-3">
+      <div v-if="domain !== 'default'" class="domain-label text-muted mb-2">
         Domain: {{ domain }}
+      </div>
+      <div class="stats-container mb-3">
+        <div class="stat-item">
+          <span class="stat-label">Accepted:</span>
+          <span class="stat-value text-success">{{ stats.accepted }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Rejected:</span>
+          <span class="stat-value text-danger">{{ stats.rejected }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Remaining:</span>
+          <span class="stat-value text-info">{{ stats.remaining }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total:</span>
+          <span class="stat-value">{{ stats.total }}</span>
+        </div>
       </div>
     </div>
 
@@ -52,6 +70,25 @@
 <style scoped>
 #app {
   min-height: 100vh;
+}
+.stats-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 1.1em;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat-label {
+  font-size: 0.8em;
+  color: #6c757d;
+}
+.stat-value {
+  font-weight: bold;
+  font-size: 1.2em;
 }
 .keyboard-key {
   display: inline-block;
@@ -146,6 +183,14 @@ const currentIndex = ref(0);
 const imageStatuses = ref({}); // { id: 'accepted' | 'rejected' }
 const done = ref(false);
 const exited = ref(false);
+
+const stats = computed(() => {
+  const accepted = Object.values(imageStatuses.value).filter(status => status === 'accepted').length;
+  const rejected = Object.values(imageStatuses.value).filter(status => status === 'rejected').length;
+  const total = images.value.length;
+  const remaining = total - accepted - rejected;
+  return { accepted, rejected, total, remaining };
+});
 
 const currentImage = computed(() => images.value[currentIndex.value]);
 const currentImageSrc = computed(() => currentImage.value ? `${baseURL}/objects/${currentImage.value.objectid}` : '');
