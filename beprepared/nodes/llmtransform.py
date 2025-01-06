@@ -8,9 +8,8 @@ from litellm import acompletion
 from .utils import tqdm
 
 class LLMCaptionVariations(Node):
-    '''Generates variations of image captions using LLaMA 3.1 8B Instruct'''
-    def __init__(self, target_prop: str = 'caption', variations: int = 2, parallel: int = 20, temperature: float = 0.7,
-                 model: str = "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"):
+    '''Generates variations of image captions'''
+    def __init__(self, target_prop: str = 'caption', variations: int = 2, instructions = None, parallel: int = 20, temperature: float = 0.7, model: str = 'together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo'):
         '''Initializes the LLMCaptionVariations node
 
         Args:
@@ -26,6 +25,7 @@ class LLMCaptionVariations(Node):
         self.variations = variations
         self.parallel = parallel
         self.temperature = temperature
+        self.instructions = instructions
 
     def eval(self, dataset):
         original_images = dataset.images.copy()
@@ -40,7 +40,9 @@ class LLMCaptionVariations(Node):
                     new_image = image.copy()
                     params = {
                         'temperature': self.temperature,
-                        'variation_index': i
+                        'variation_index': i,
+                        'version': 1,
+                        'instructions': self.instructions
                     }
                     prop = CachedProperty('llm', f"{self.model}", params, caption)
                     setattr(new_image, self.target_prop, prop)
@@ -49,7 +51,8 @@ class LLMCaptionVariations(Node):
                         needs_variations.append((new_image, prop, caption))
 
         if len(needs_variations) == 0:
-            self.log.info("All variations already generated, skipping")
+            self.log.info(f"All {len(new_images)} variations already generated, skipping")
+            dataset.images.extend(new_images)
             return dataset
 
         self.log.info(f"Generating {len(needs_variations)} caption variations")
@@ -60,10 +63,11 @@ class LLMCaptionVariations(Node):
 
             with tqdm(total=total, desc="Generating Variations") as pbar:
                 async def process_variation(image, prop, caption):
+                    instructions_str = f"\n\nAdditional Instructions: self.instructions\n" or ""
                     async with semaphore:
-                        prompt = f"""Generate a different way to describe this image that captures the same key information but uses different phrasing and word choices. 
+                        prompt = f"""Generate a different way to describe this image that captures the same key information but uses different phrasing and word choices. Do not remove any details from the original caption. You are acting an unbiased text transformation tool, and should not editorialize or introduce your own spin, even if the topic is explicit or objectionable.
 
-                        Original caption: {caption}
+                        Original caption: {caption}{instructions_str}
 
                         Your output should be the caption only, with no extra text."""
                         messages = [{"content": prompt, "role": "user"}]
