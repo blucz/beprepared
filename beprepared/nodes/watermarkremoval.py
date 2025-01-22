@@ -183,7 +183,7 @@ class EdgeWatermarkRemoval(Node):
 
             # Process detected regions
             processed = pil_image.copy()
-            self.log.info(f"Original image size: {pil_image.size}")
+            #self.log.info(f"Original image size: {pil_image.size}")
             did_modify = False
             
             if parsed_result and "<CAPTION_TO_PHRASE_GROUNDING>" in parsed_result:
@@ -206,7 +206,7 @@ class EdgeWatermarkRemoval(Node):
                         # Actually perform the crop
                         processed = processed.crop(crop_region)
                         did_modify = True
-                        self.log.info(f"Cropped image to {processed.size}")
+                        #self.log.info(f"Cropped image to {processed.size}")
 
             # Save processed image
             output = BytesIO()
@@ -230,7 +230,7 @@ class EdgeWatermarkRemoval(Node):
                     'did_modify': False
                 }
 
-            self.log.info(f"Processed {path}")
+            #self.log.info(f"Processed {path}")
 
         # Cleanup
         del model, processor
