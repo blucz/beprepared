@@ -4,6 +4,8 @@ import shutil
 def copy_or_hardlink(src, dst):
     try:
         os.link(src, dst)
+    except (shutil.SameFileError, FileExistsError):
+        pass
     except (OSError, NotImplementedError) as e:
         shutil.copy2(src, dst)
 
