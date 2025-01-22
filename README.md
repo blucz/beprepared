@@ -19,8 +19,8 @@ A typical data prep workflow may look like this:
 - Filter out images that are too small, or low quality
 - Manually select images that are relevant to your task
 - Auto-caption images using GPT-4o, JoyCaption, Llama 3.2, BLIP3, xGen-mm, or another VLM
-- Manually tag images with concepts or that are not understood by the VLM
-- Use an LLM prompt to compose tags + captions into a final caption, perhaps introducing additional rules
+- Manually tag images with information that is not understood by the VLM
+- Use an LLM prompt to compose tags + VLM captions into a final caption, perhaps introducing additional rules
 - Perform caption augmentation by generating a few caption variations for each image
 - Create a training directory with `foo.jpg`, `foo.txt`, `bar.jpg`, `bar.txt`, ...
 
@@ -114,15 +114,17 @@ human-in-the-loop operations, or ML model invocations that have already been run
 Significantly more complex workflows are possible, and beprepared is designed to support them. See 
 [the docs](https://blucz.github.io/beprepared/examples) for more examples.
 
-This is the main way to use beprepared.
+`beprepared run` is the main way to use beprepared.
 
 ### `beprepared exec` - Quick Operations
 
 Execute one-line operations without creating a workflow file:
+
 ```bash
 $ beprepared exec "Load('raw_images') >> HumanFilter >> Save('filtered')"
 $ beprepared exec "Load('dataset') >> JoyCaptionAlphaOne >> Save"
 $ beprepared exec "Load('photos') >> NudeNet >> Info"
+$ beprepared exec "Load('photos') >> EdgeWatermarkRemoval >> Save('photos_cleaned')"
 ```
 
 ### `beprepared db` - Manage the Workspace (advanced)
@@ -136,6 +138,7 @@ $ beprepared db clear                                # Clear all cached data
 $ beprepared db clear "gemini*"                      # Clear specific cached data
 $ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached data
 ```
+This lets you inspect the cache and clear out items, for example if you want to force re-running a step for some reason. It's most commonly used while developing beprepared, but we can imagine other use cases. 
 
 ## Features
 
@@ -164,10 +167,10 @@ The full documentation is available at [https://blucz.github.io/beprepared](http
 This project is used to prepare data sets for fine-tuning diffusion models on a single compute node. Currently it
 supports only one GPU, but multi-GPU support is planned.
 
-It is not a goal of this project to help people preparing pre-training datasets with millions or billions of images. 
+It is not a goal of this project to help with preparing pre-training datasets with millions or billions of images. 
 That would require a fundamentally more complex distributed architecture and would make it more difficult
 for the community to work with and improve this tool.
 
 This project is currently developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make 
-this software more friendly to smaller GPUs. Most likely this will involve tuning batch sizes or using quantized models.
+this software more friendly to smaller GPUs.
 
