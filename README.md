@@ -145,6 +145,7 @@ $ beprepared db clear -d "mydomain" "humanfilter*"   # Clear specific cached dat
 - Automatic Captioning using JoyCaption, Llama 3.2, BLIP3, xGen-mm, GPT-4o, Gemini, Molmo, and Florence2
 - Human-in-the-loop filtering and tagging
 - Nudity detection using NudeNet
+- Watermark removal using Florence2
 - Improving captions using LLMs
 - Upscaling and downscaling images using PIL
 - Filtering images based on size
