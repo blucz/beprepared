@@ -35,9 +35,9 @@ class EdgeWatermarkRemoval(Node):
             bbox_width = x2 - x1
             bbox_height = y2 - y1
             
-            # Define strict edge margin (3%) for initial filtering
-            strict_margin_x = int(width * 0.03)
-            strict_margin_y = int(height * 0.03)
+            # Define strict edge margin (5%) for initial filtering
+            strict_margin_x = int(width * 0.05)
+            strict_margin_y = int(height * 0.05)
             
             # Check if bbox comes within strict margin of any edge AND is completely within crop margin
             if ((x1 <= strict_margin_x or x2 >= width - strict_margin_x or 
@@ -131,7 +131,7 @@ class EdgeWatermarkRemoval(Node):
     def eval(self, dataset):
         needs_processing = []
         for image in dataset.images:
-            image._watermark_removal = CachedProperty('watermark_removal', 'v1', image)
+            image._watermark_removal = CachedProperty('watermark_removal', 'v2', image)
             if not image._watermark_removal.has_value:
                 needs_processing.append(image)
 

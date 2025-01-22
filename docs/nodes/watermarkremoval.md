@@ -1,4 +1,4 @@
-# EdgeWatermarkRemoval
+# Watermark Removal
 
 The EdgeWatermarkRemoval node uses Florence-2 to detect watermarks, logos, and text near image edges and automatically crop them out.
 
