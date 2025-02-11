@@ -30,7 +30,10 @@
 
         <div v-if='!done' class='image-container p-4 rounded'>
           <img :src="currentImageSrc" class="rounded" :style="imageBorderStyle"/>
-          <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
+          <div class='image-info'>
+            <div class='x-of-y'>{{currentIndex+1}} / {{images.length}}</div>
+            <div v-if="currentImage" class='dimensions'>{{currentImage.width}} × {{currentImage.height}}</div>
+          </div>
         </div>
         <div v-else class='image-container p-4 rounded d-flex flex-row justify-content-center align-items-center continue-button'>
           <button v-if='!exited' class='btn btn-primary btn-lg' @click='close'>Continue to next step</button>
@@ -145,8 +148,16 @@
   height: calc(min(800px, 100vw - 200px)); 
   max-width: 800px;
 }
-.x-of-y {
+.image-info {
   text-align: center;
+}
+.x-of-y {
+  display: inline-block;
+  margin-right: 10px;
+}
+.dimensions {
+  display: inline-block;
+  color: #6c757d;
 }
 @media (pointer: coarse) {
   .hide-on-touch {
