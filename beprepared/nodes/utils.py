@@ -167,12 +167,13 @@ class Take(Node):
         self.seed = seed
 
     def eval(self, dataset):
+        n = min(self.n, len(dataset.images))
         if self.random:
             rng = random.Random()
             rng.seed(self.seed)
-            dataset.images = rng.sample(dataset.images, self.n)
+            dataset.images = rng.sample(dataset.images, n)
         else:
-            dataset.images = dataset.images[:self.n]
+            dataset.images = dataset.images[:n]
         return dataset
 
 
