@@ -7,6 +7,7 @@ import numpy as np
 import json
 import re
 import textwrap
+import multiprocessing as mp
 from beprepared.workspace import Workspace, Database
 from beprepared.utils import copy_or_hardlink
 from tqdm import tqdm
@@ -168,6 +169,8 @@ def exec_command(args):
         workspace.run()
 
 def main():
+    mp.set_start_method("spawn", force=True)
+
     parser = argparse.ArgumentParser(
         description='beprepared - AI image processing toolkit.\n\nSee https://github.com/blucz/beprepared for more info'
     )

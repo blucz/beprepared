@@ -1,6 +1,7 @@
 import os
 import gc
-from typing import Optional, Literal
+from typing import Optional, Literal, List, Tuple
+from dataclasses import dataclass
 
 from transformers import AutoModelForVision2Seq, AutoTokenizer, AutoImageProcessor, StoppingCriteria, LogitsProcessor
 import torch
@@ -11,6 +12,13 @@ from beprepared.workspace import Workspace
 from beprepared.node import Node 
 from beprepared.properties import CachedProperty, ComputedProperty
 from beprepared.nodes.convert_format import convert_image
+from .parallelworker import ParallelController, BaseWorker
+
+@dataclass
+class BatchItem:
+    """Represents a batch of images to process"""
+    image_indices: List[int]  # Original indices in the dataset
+    image_paths: List[str]    # Paths to the images
 
 # define the prompt template
 def apply_prompt_template(prompt):
@@ -43,6 +51,93 @@ class EosLogitProcessor(LogitsProcessor):
             # Force generation of EOS after the <|end|> token.
             scores[input_ids[:, -1] == self.end_token_id] = forced_eos
         return scores 
+
+
+class XGenMMCaptionWorker(BaseWorker):
+    def initialize_worker(self):
+        """Initialize the XGen-MM model and processors"""
+        gpu_id = self.worker_params['gpu_id']
+        torch.cuda.set_device(gpu_id)
+        
+        MODEL = "Salesforce/xgen-mm-phi3-mini-instruct-r-v1"
+        self.model = AutoModelForVision2Seq.from_pretrained(
+            MODEL, 
+            trust_remote_code=True,
+            torch_dtype=torch.float16,
+        ).to(f'cuda:{gpu_id}')
+        
+        self.tokenizer = AutoTokenizer.from_pretrained(MODEL, trust_remote_code=True, use_fast=False, legacy=False)
+        self.image_processor = AutoImageProcessor.from_pretrained(MODEL, trust_remote_code=True)
+        self.tokenizer = self.model.update_special_tokens(self.tokenizer)
+
+        # Process prompt once
+        self.prompt = self.worker_params['prompt']
+        query = apply_prompt_template(self.prompt)
+        self.language_inputs = self.tokenizer(
+            query, 
+            return_tensors="pt",
+            padding="longest",
+            max_length=self.tokenizer.model_max_length, 
+            truncation=True
+        )
+        self.language_inputs = {name: tensor.to(f'cuda:{gpu_id}') for name, tensor in self.language_inputs.items()}
+
+    def process_item(self, item: BatchItem) -> Tuple[List[int], List[str]]:
+        """Process a batch of images and return their captions"""
+        cropped_images = []
+        image_sizes = []
+
+        for path in item.image_paths:
+            raw_image = Image.open(path).convert('RGB')
+            w,h = raw_image.size
+            cropped_image = raw_image.crop((0, h * 0.05, w, h * 0.91))    # l,t,r,b
+            cropped_images.append(cropped_image)
+            image_sizes.append(cropped_image.size)
+
+        inputs = [self.image_processor([img], return_tensors="pt", image_aspect_ratio='anyres') for img in cropped_images]
+        batch_inputs = {}
+        for sample_input in inputs:
+            for name, tensor in sample_input.items():
+                if name in batch_inputs:
+                    batch_inputs[name].append(tensor.squeeze(0).to(f'cuda:{self.worker_params["gpu_id"]}'))
+                else:
+                    batch_inputs[name] = [tensor.squeeze(0).to(f'cuda:{self.worker_params["gpu_id"]}')]
+
+        # repeat the language inputs for each image
+        batch_language_inputs = {}
+        for key in self.language_inputs:
+            batch_language_inputs[key] = self.language_inputs[key].repeat(len(cropped_images), 1)
+        batch_inputs.update(batch_language_inputs)
+        batch_inputs['pixel_values'] = [x.to(torch.float16).to(f'cuda:{self.worker_params["gpu_id"]}') for x in batch_inputs['pixel_values']]
+
+        generated_text = self.model.generate(
+            **batch_inputs, 
+            image_size=image_sizes,
+            pad_token_id=self.tokenizer.pad_token_id,
+            do_sample=False, 
+            max_new_tokens=4096, 
+            top_p=None, 
+            num_beams=1,
+            logits_processor=[EosLogitProcessor(
+                eos_token_id=self.tokenizer.eos_token_id, 
+                end_token_id=32007
+            )],
+        )
+        predictions = self.tokenizer.batch_decode(generated_text, skip_special_tokens=True)
+        captions = []
+        for prediction in predictions:
+            prediction = prediction.split('<|end|>')[0]
+            captions.append(prediction.strip())
+
+        return item.image_indices, captions
+
+    def shutdown_worker(self):
+        """Clean up GPU resources"""
+        del self.model
+        del self.tokenizer
+        del self.image_processor
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
 class XGenMMCaption(Node):
@@ -81,69 +176,40 @@ class XGenMMCaption(Node):
             self.log.info("All images already have captions, skipping")
             return dataset
 
-        MODEL = "Salesforce/xgen-mm-phi3-mini-instruct-r-v1"
-        model = AutoModelForVision2Seq.from_pretrained(
-                MODEL, 
-                trust_remote_code=True,
-                torch_dtype=torch.float16,
-        ).cuda()
-        tokenizer = AutoTokenizer.from_pretrained(MODEL, trust_remote_code=True, use_fast=False, legacy=False)
-        image_processor = AutoImageProcessor.from_pretrained(MODEL, trust_remote_code=True)
-        tokenizer = model.update_special_tokens(tokenizer)
+        # Get number of available GPUs
+        num_gpus = torch.cuda.device_count()
+        self.log.info(f"Processing {len(needs_caption)} images with xGen-mm using {num_gpus} GPUs")
+        if num_gpus == 0:
+            raise RuntimeError("No CUDA devices available")
 
-        query = apply_prompt_template(self.prompt)
-        language_inputs = tokenizer(query, 
-                                    return_tensors="pt",
-                                    padding="longest",
-                                    max_length=tokenizer.model_max_length, 
-                                    truncation=True
-                                    )
-        language_inputs = {name: tensor.cuda() for name, tensor in language_inputs.items()}
+        # Create worker parameters for each GPU
+        worker_params_list = [
+            {'gpu_id': i, 'prompt': self.prompt}
+            for i in range(num_gpus)
+        ]
 
-        for i in tqdm(range(0, len(needs_caption), self.batch_size), desc="xGen-mm"):
+        # Create batches of work items
+        batches = []
+        for i in range(0, len(needs_caption), self.batch_size):
             batch_images = needs_caption[i:i + self.batch_size]
-            cropped_images = []
-            image_sizes = []
+            batch = BatchItem(
+                image_indices=list(range(i, min(i + self.batch_size, len(needs_caption)))),
+                image_paths=[self.workspace.get_path(img) for img in batch_images]
+            )
+            batches.append(batch)
 
-            for image in batch_images:
-                path = self.workspace.get_path(image)
-                raw_image = Image.open(path).convert('RGB')
-                w,h = raw_image.size
-                cropped_image = raw_image.crop((0, h * 0.05, w, h * 0.91))    # l,t,r,b
-                cropped_images.append(cropped_image)
-                image_sizes.append(cropped_image.size)
-
-            inputs = [image_processor([img], return_tensors="pt", image_aspect_ratio='anyres') for img in cropped_images]
-            batch_inputs = {}
-            for sample_input in inputs:
-                for name, tensor in sample_input.items():
-                    if name in batch_inputs:
-                        batch_inputs[name].append(tensor.squeeze(0).cuda())
-                    else:
-                        batch_inputs[name] = [tensor.squeeze(0).cuda()]
-
-            # repeat the language inputs for each image
-            batch_language_inputs = {}
-            for key in language_inputs:
-                batch_language_inputs[key] = language_inputs[key].repeat(len(batch_images), 1)
-            batch_inputs.update(batch_language_inputs)
-            batch_inputs['pixel_values'] = [x.to(torch.float16).cuda() for x in batch_inputs['pixel_values']]
-
-            generated_text = model.generate(**batch_inputs, image_size=image_sizes,
-                                            pad_token_id=tokenizer.pad_token_id,
-                                            do_sample=False, max_new_tokens=4096, top_p=None, num_beams=1,
-                                            logits_processor = [EosLogitProcessor(eos_token_id=tokenizer.eos_token_id, end_token_id=32007)],
-                                            )
-            predictions = tokenizer.batch_decode(generated_text, skip_special_tokens=True)
-            for i,prediction in enumerate(predictions):
-                prediction = prediction.split('<|end|>')[0]
-                image = batch_images[i]
-                image._xgenmm_caption.value = prediction.strip()
-                #self.log.info(prediction)
-
-        # Cleanup
-        del model, tokenizer, image_processor
-        gc.collect()
-        torch.cuda.empty_cache()
+        # Create and run the parallel controller
+        controller = ParallelController(XGenMMCaptionWorker, worker_params_list)
+        
+        with tqdm(total=len(needs_caption), desc="xGen-mm") as pbar:
+            for success, result in controller.run(batches):
+                if not success:
+                    raise RuntimeError(f"Worker failed: {result}")
+                
+                indices, captions = result
+                for idx, caption in zip(indices, captions):
+                    needs_caption[idx]._xgenmm_caption.value = caption
+                    self.log.info(f"Generated caption for {needs_caption[idx].objectid.value}: {caption}")
+                pbar.update(len(indices))
         
         return dataset

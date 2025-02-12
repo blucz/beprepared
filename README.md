@@ -157,6 +157,7 @@ This lets you inspect the cache and clear out items, for example if you want to 
 - Precise and Fuzzy (CLIP-based) image deduplication
 - Aesthetic scoring
 - Collection operations like Map, Apply, Filter, Sort, Shuffle, Concat, and Random Sampling
+- Multi-GPU support for faster captioning, CLIP encoding, and watermark removal on multi-GPU systems
 
 ## Documentation
 
@@ -164,13 +165,12 @@ The full documentation is available at [https://blucz.github.io/beprepared](http
 
 ## Limitations
 
-This project is used to prepare data sets for fine-tuning diffusion models on a single compute node. Currently it
-supports only one GPU, but multi-GPU support is planned.
+This project is used to prepare data sets for fine-tuning diffusion models on a single compute node. 
 
 It is not a goal of this project to help with preparing pre-training datasets with millions or billions of images. 
 That would require a fundamentally more complex distributed architecture and would make it more difficult
 for the community to work with and improve this tool.
 
 This project is currently developed on 24GB GPUs, and is not optimized for smaller GPUs. We welcome patches that make 
-this software more friendly to smaller GPUs.
+this software more friendly to smaller GPUs or faster on larger GPUs.
 

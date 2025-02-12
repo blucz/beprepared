@@ -1,5 +1,6 @@
 import gc
-from typing import Optional
+from typing import Optional, List, Tuple
+from dataclasses import dataclass
 
 from transformers import AutoModelForCausalLM, AutoProcessor, GenerationConfig
 import torch
@@ -8,6 +9,75 @@ from PIL import Image
 
 from beprepared.node import Node 
 from beprepared.properties import CachedProperty, ComputedProperty
+from .parallelworker import ParallelController, BaseWorker
+
+@dataclass
+class BatchItem:
+    """Represents a batch of images to process"""
+    image_indices: List[int]  # Original indices in the dataset
+    image_paths: List[str]    # Paths to the images
+
+class MolmoCaptionWorker(BaseWorker):
+    def initialize_worker(self):
+        """Initialize the Molmo model and processor"""
+        gpu_id = self.worker_params['gpu_id']
+        torch.cuda.set_device(gpu_id)
+        
+        MODEL = "allenai/Molmo-7B-D-0924"
+        
+        self.processor = AutoProcessor.from_pretrained(
+            MODEL,
+            trust_remote_code=True
+        )
+        
+        self.model = AutoModelForCausalLM.from_pretrained(
+            MODEL,
+            trust_remote_code=True,
+            torch_dtype=torch.bfloat16
+        ).to(f'cuda:{gpu_id}')
+        
+        self.prompt = self.worker_params['prompt']
+
+    def process_item(self, item: BatchItem) -> Tuple[List[int], List[str]]:
+        """Process a batch of images and return their captions"""
+        pil_images = []
+        for path in item.image_paths:
+            img = Image.open(path).convert('RGB')
+            pil_images.append(img)
+
+        # Process inputs
+        inputs = self.processor.process(
+            images=pil_images,
+            text=self.prompt
+        )
+        
+        # Move inputs to device and batch
+        inputs = {k: v.to(f'cuda:{self.worker_params["gpu_id"]}').unsqueeze(0) for k, v in inputs.items()}
+
+        # Generate captions
+        with torch.autocast(device_type="cuda", enabled=True, dtype=torch.bfloat16):
+            output = self.model.generate_from_batch(
+                inputs,
+                GenerationConfig(max_new_tokens=512, stop_strings="<|endoftext|>"),
+                tokenizer=self.processor.tokenizer
+            )
+
+        # Decode captions
+        captions = []
+        for idx in range(len(pil_images)):
+            generated_tokens = output[idx, inputs['input_ids'].size(1):]
+            caption = self.processor.tokenizer.decode(generated_tokens, skip_special_tokens=True)
+            captions.append(caption.strip())
+
+        return item.image_indices, captions
+
+    def shutdown_worker(self):
+        """Clean up GPU resources"""
+        del self.model
+        del self.processor
+        gc.collect()
+        torch.cuda.empty_cache()
+
 
 class MolmoCaption(Node):
     '''Generates image captions using the Molmo-7B-D-0924 model'''
@@ -45,60 +115,41 @@ class MolmoCaption(Node):
             self.log.info("All images already have captions, skipping")
             return dataset
 
-        self.log.info(f"Generating captions for {len(needs_caption)} images")
+        # Get number of available GPUs
+        num_gpus = torch.cuda.device_count()
+        self.log.info(f"Processing {len(needs_caption)} images with Molmo using {num_gpus} GPUs")
+        if num_gpus == 0:
+            raise RuntimeError("No CUDA devices available")
 
-        MODEL = "allenai/Molmo-7B-D-0924"
-        
-        # Load processor and model
-        processor = AutoProcessor.from_pretrained(
-            MODEL,
-            trust_remote_code=True
-        )
-        
-        model = AutoModelForCausalLM.from_pretrained(
-            MODEL,
-            trust_remote_code=True,
-            torch_dtype=torch.bfloat16
-        ).to('cuda')
+        # Create worker parameters for each GPU
+        worker_params_list = [
+            {'gpu_id': i, 'prompt': self.prompt}
+            for i in range(num_gpus)
+        ]
 
-        for i in tqdm(range(0, len(needs_caption), self.batch_size), desc="Molmo"):
+        # Create batches of work items
+        batches = []
+        for i in range(0, len(needs_caption), self.batch_size):
             batch_images = needs_caption[i:i + self.batch_size]
-
-            # Prepare images and text inputs
-            pil_images = []
-            for image in batch_images:
-                path = self.workspace.get_path(image)
-                img = Image.open(path).convert('RGB')
-                pil_images.append(img)
-
-            # Process inputs
-            inputs = processor.process(
-                images=pil_images,
-                text=self.prompt
+            batch = BatchItem(
+                image_indices=list(range(i, min(i + self.batch_size, len(needs_caption)))),
+                image_paths=[self.workspace.get_path(img) for img in batch_images]
             )
-            
-            # Move inputs to device and batch
-            inputs = {k: v.to(model.device).unsqueeze(0) for k, v in inputs.items()}
+            batches.append(batch)
 
-            # Generate captions
-            with torch.autocast(device_type="cuda", enabled=True, dtype=torch.bfloat16):
-                output = model.generate_from_batch(
-                    inputs,
-                    GenerationConfig(max_new_tokens=512, stop_strings="<|endoftext|>"),
-                    tokenizer=processor.tokenizer
-                )
-
-            # Decode and store captions
-            for idx, image in enumerate(batch_images):
-                generated_tokens = output[idx, inputs['input_ids'].size(1):]
-                caption = processor.tokenizer.decode(generated_tokens, skip_special_tokens=True)
-                image._molmo_caption.value = caption.strip()
-                self.log.info(f"{self.workspace.get_path(image)} => {caption}")
-
-        # Cleanup
-        del model, processor
-        gc.collect()
-        torch.cuda.empty_cache()
+        # Create and run the parallel controller
+        controller = ParallelController(MolmoCaptionWorker, worker_params_list)
+        
+        with tqdm(total=len(needs_caption), desc="Molmo") as pbar:
+            for success, result in controller.run(batches):
+                if not success:
+                    raise RuntimeError(f"Worker failed: {result}")
+                
+                indices, captions = result
+                for idx, caption in zip(indices, captions):
+                    needs_caption[idx]._molmo_caption.value = caption
+                    self.log.info(f"{self.workspace.get_path(needs_caption[idx])} => {caption}")
+                pbar.update(len(indices))
         
         return dataset
 

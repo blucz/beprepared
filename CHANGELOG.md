@@ -1,5 +1,17 @@
 # beprepared!
 
+## 0.2.3
+
+- Minor Web UI improvements
+- Multi-GPU support for captioning and watermark removal
+- Fix bug in Take in random mode where it would crash if n<len(dataset.images)
+
+## 0.2.2
+
+- Implement beprepared cli 
+- Change database format to make domain a first class concept
+- Update documentation to reflect the CLI
+
 ## 0.2.2
 
 - Implement beprepared cli 

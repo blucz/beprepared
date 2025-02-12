@@ -1,5 +1,6 @@
 import gc
-from typing import Optional
+from typing import Optional, List, Tuple
+from dataclasses import dataclass
 
 from transformers import MllamaForConditionalGeneration, AutoProcessor
 import torch
@@ -8,6 +9,76 @@ from PIL import Image
 
 from beprepared.node import Node 
 from beprepared.properties import CachedProperty, ComputedProperty
+from .parallelworker import ParallelController, BaseWorker
+
+@dataclass
+class BatchItem:
+    """Represents a batch of images to process"""
+    image_indices: List[int]  # Original indices in the dataset
+    image_paths: List[str]    # Paths to the images
+
+class LlamaCaptionWorker(BaseWorker):
+    def initialize_worker(self):
+        """Initialize the Llama model and processor"""
+        gpu_id = self.worker_params['gpu_id']
+        torch.cuda.set_device(gpu_id)
+        
+        MODEL = "meta-llama/Llama-3.2-11B-Vision-Instruct"
+        self.model = MllamaForConditionalGeneration.from_pretrained(
+            MODEL, 
+            torch_dtype=torch.bfloat16,
+            trust_remote_code=False,
+        )
+        self.model.to(f'cuda:{gpu_id}')
+        self.processor = AutoProcessor.from_pretrained(MODEL, trust_remote_code=True)
+        self.prompt = self.worker_params['prompt']
+
+    def process_item(self, item: BatchItem) -> Tuple[List[int], List[str]]:
+        """Process a batch of images and return their captions"""
+        pilimages_batch = []
+        for path in item.image_paths:
+            img = Image.open(path).convert('RGB')
+            pilimages_batch.append(img)
+
+        text_batch = []
+        for img in pilimages_batch:
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        { "type": "image" },
+                        {"type": "text", "text": self.prompt },
+                    ],
+                }
+            ]
+            text = self.processor.apply_chat_template(messages)
+            text_batch.append(text)
+
+        inputs = self.processor(pilimages_batch, text_batch, return_tensors="pt")
+        inputs.to(f'cuda:{self.worker_params["gpu_id"]}')
+
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                **inputs, 
+                max_new_tokens=300, 
+                temperature=0.5
+            )
+        generated_ids_trimmed = [
+            out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        ]
+        output_text = self.processor.batch_decode(
+            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+        )
+        
+        return item.image_indices, [caption.removeprefix("assistant\n\n").strip() for caption in output_text]
+
+    def shutdown_worker(self):
+        """Clean up GPU resources"""
+        del self.model
+        del self.processor
+        gc.collect()
+        torch.cuda.empty_cache()
+
 
 class LlamaCaption(Node):
     '''Generates image captions using the Llama 3.2 Vision 11B model'''
@@ -47,63 +118,40 @@ class LlamaCaption(Node):
 
         self.log.info(f"Generating captions for {len(needs_caption)} images")
 
-        MODEL = "meta-llama/Llama-3.2-11B-Vision-Instruct"
-        model = MllamaForConditionalGeneration.from_pretrained(
-                MODEL, 
-                torch_dtype=torch.bfloat16,
-                trust_remote_code=False,
-        )
-        model.to('cuda')
-        processor = AutoProcessor.from_pretrained(MODEL, trust_remote_code=True)
+        # Get number of available GPUs
+        num_gpus = torch.cuda.device_count()
+        if num_gpus == 0:
+            raise RuntimeError("No CUDA devices available")
 
-        for i in tqdm(range(0, len(needs_caption), self.batch_size), desc="Llama Vision"):
+        # Create worker parameters for each GPU
+        worker_params_list = [
+            {'gpu_id': i, 'prompt': self.prompt}
+            for i in range(num_gpus)
+        ]
+
+        # Create batches of work items
+        batches = []
+        for i in range(0, len(needs_caption), self.batch_size):
             batch_images = needs_caption[i:i + self.batch_size]
-
-            pilimages_batch = []
-            for image in batch_images:
-                path = self.workspace.get_path(image)
-                image = Image.open(path).convert('RGB')
-                pilimages_batch.append(image)
-
-            text_batch = []
-            for img in pilimages_batch:
-                messages = [
-                    {
-                        "role": "user",
-                        "content": [
-                            { "type": "image" },
-                            {"type": "text", "text": self.prompt },
-                        ],
-                    }
-                ]
-                text = processor.apply_chat_template(messages)
-                text_batch.append(text)
-
-            inputs = processor(pilimages_batch, text_batch, return_tensors="pt")
-            inputs.to("cuda")
-
-            with torch.no_grad():
-                generated_ids = model.generate(
-                    **inputs, 
-                    max_new_tokens=300, 
-                    temperature=0.5
-                )
-            generated_ids_trimmed = [
-                out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-            ]
-            output_text = processor.batch_decode(
-                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            batch = BatchItem(
+                image_indices=list(range(i, min(i + self.batch_size, len(needs_caption)))),
+                image_paths=[self.workspace.get_path(img) for img in batch_images]
             )
+            batches.append(batch)
 
-            for image, caption in zip(batch_images, output_text):
-                clean_caption = caption.removeprefix("assistant\n\n").strip()
-                image._llama_caption.value = clean_caption
-                self.log.info(f"{self.workspace.get_path(image)} => {clean_caption}")
-
-        # Cleanup
-        del model, processor
-        gc.collect()
-        torch.cuda.empty_cache()
+        # Create and run the parallel controller
+        controller = ParallelController(LlamaCaptionWorker, worker_params_list)
+        
+        with tqdm(total=len(needs_caption), desc="Llama Vision") as pbar:
+            for success, result in controller.run(batches):
+                if not success:
+                    raise RuntimeError(f"Worker failed: {result}")
+                
+                indices, captions = result
+                for idx, caption in zip(indices, captions):
+                    needs_caption[idx]._llama_caption.value = caption
+                    self.log.info(f"{self.workspace.get_path(needs_caption[idx])} => {caption}")
+                pbar.update(len(indices))
         
         return dataset
 

@@ -7,6 +7,8 @@
 from beprepared.workspace import Workspace, Abort
 from beprepared.node import Node
 from beprepared.properties import CachedProperty, ComputedProperty
+from dataclasses import dataclass
+from typing import List, Tuple
 
 from torch import nn
 from transformers import AutoModel, AutoProcessor, AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast, AutoModelForCausalLM
@@ -17,6 +19,13 @@ import os
 import torchvision.transforms.functional as TVF
 from typing import Literal, Union
 from .utils import tqdm
+from .parallelworker import ParallelController, BaseWorker
+
+@dataclass
+class BatchItem:
+    """Represents a batch of images to process"""
+    image_indices: List[int]  # Original indices in the dataset
+    image_paths: List[str]    # Paths to the images
 
 import base64
 import openai
@@ -90,6 +99,161 @@ class ImageAdapter(nn.Module):
     def get_eot_embedding(self):
         return self.other_tokens(torch.tensor([2], device=self.other_tokens.weight.device)).squeeze(0)
 
+class JoyCaptionAlphaOneWorker(BaseWorker):
+    def initialize_worker(self):
+        """Initialize the models and adapters"""
+        gpu_id = self.worker_params['gpu_id']
+        torch.cuda.set_device(gpu_id)
+        
+        cachedir = self.worker_params['cachedir'].dir
+        image_adapter_path = os.path.join(cachedir, "image_adapter.pt")
+        clip_model_path = os.path.join(cachedir, "clip_model.pt")
+        text_model_path = os.path.join(cachedir, 'text_model')
+
+        self.clip_model = AutoModel.from_pretrained(CLIP_PATH)
+        self.clip_model = self.clip_model.vision_model
+
+        checkpoint = torch.load(clip_model_path, map_location='cpu', weights_only=True)
+        checkpoint = {k.replace("_orig_mod.module.", ""): v for k, v in checkpoint.items()}
+        self.clip_model.load_state_dict(checkpoint)
+        del checkpoint
+        self.clip_model.eval()
+        self.clip_model.requires_grad_(False)
+        self.clip_model.to(f'cuda:{gpu_id}')
+
+        self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_PATH, use_fast=False)
+
+        self.text_model = AutoModelForCausalLM.from_pretrained(
+            text_model_path, 
+            device_map=gpu_id,
+            torch_dtype=torch.bfloat16
+        )
+        self.text_model.eval()
+
+        self.image_adapter = ImageAdapter(
+            self.clip_model.config.hidden_size,
+            self.text_model.config.hidden_size,
+            False, False, 38, False
+        )
+        self.image_adapter.load_state_dict(
+            torch.load(image_adapter_path, map_location='cpu', weights_only=True)
+        )
+        self.image_adapter.eval()
+        self.image_adapter.to(f'cuda:{gpu_id}')
+
+        # Store parameters
+        self.caption_type = self.worker_params['caption_type']
+        self.caption_tone = self.worker_params['caption_tone']
+        self.caption_length = self.worker_params['caption_length']
+
+    def process_item(self, item: BatchItem) -> Tuple[List[int], List[str]]:
+        """Process a batch of images and return their captions"""
+        input_images = [Image.open(path) for path in item.image_paths]
+        
+        torch.cuda.empty_cache()
+        length = None if self.caption_length == "any" else self.caption_length
+
+        if self.caption_type in ["booru", "stable_diffusion"]:
+            caption_tone = "formal"
+        else:
+            caption_tone = self.caption_tone
+
+        prompts = []
+        for _ in input_images:
+            prompt_key = (self.caption_type, caption_tone, isinstance(length, str), isinstance(length, int))
+            if prompt_key not in CAPTION_TYPE_MAP:
+                raise ValueError(f"Invalid caption type: {prompt_key}")
+            prompt_str = CAPTION_TYPE_MAP[prompt_key][0].format(length=length, word_count=length)
+            prompts.append(prompt_str)
+
+        processed_images = []
+        for image in input_images:
+            img = image.resize((384, 384), Image.LANCZOS)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            pixel_values = TVF.pil_to_tensor(img).unsqueeze(0) / 255.0
+            pixel_values = TVF.normalize(pixel_values, [0.5], [0.5])
+            pixel_values = pixel_values.to(f'cuda:{self.worker_params["gpu_id"]}')
+            processed_images.append(pixel_values)
+
+        pixel_values = torch.cat(processed_images, dim=0)
+        pixel_values = pixel_values.to(f'cuda:{self.worker_params["gpu_id"]}')
+
+        tokenized_prompts = [
+            self.tokenizer.encode(p, return_tensors='pt', padding=False, truncation=False, add_special_tokens=False)
+            for p in prompts
+        ]
+        prompt_ids = torch.cat(tokenized_prompts, dim=0).to(f'cuda:{self.worker_params["gpu_id"]}')
+
+        with torch.amp.autocast_mode.autocast('cuda', enabled=True):
+            vision_outputs = self.clip_model(pixel_values=pixel_values, output_hidden_states=True)
+            image_features = vision_outputs.hidden_states
+            embedded_images = self.image_adapter(image_features)
+            embedded_images = embedded_images.to(f'cuda:{self.worker_params["gpu_id"]}')
+
+        prompt_embeds = self.text_model.model.embed_tokens(prompt_ids)
+        embedded_bos = self.text_model.model.embed_tokens(
+            torch.tensor([self.tokenizer.bos_token_id], device=f'cuda:{self.worker_params["gpu_id"]}', dtype=torch.int64)
+        )
+        eot_embed = self.image_adapter.get_eot_embedding().unsqueeze(0).to(dtype=self.text_model.dtype)
+
+        inputs_embeds = torch.cat([
+            embedded_bos.expand(embedded_images.shape[0], -1, -1),
+            embedded_images.to(dtype=embedded_bos.dtype),
+            prompt_embeds,
+            eot_embed.expand(embedded_images.shape[0], -1, -1),
+        ], dim=1)
+
+        input_ids = torch.cat([
+            torch.tensor([self.tokenizer.bos_token_id], dtype=torch.long, device=f'cuda:{self.worker_params["gpu_id"]}')
+                .unsqueeze(0).expand(len(input_images), -1),
+            torch.zeros(
+                (len(input_images), embedded_images.shape[1]),
+                dtype=torch.long,
+                device=f'cuda:{self.worker_params["gpu_id"]}'
+            ),
+            prompt_ids,
+            torch.tensor([self.tokenizer.convert_tokens_to_ids("<|eot_id|>")], dtype=torch.long, device=f'cuda:{self.worker_params["gpu_id"]}')
+                .unsqueeze(0).expand(len(input_images), -1),
+        ], dim=1)
+        attention_mask = torch.ones_like(input_ids)
+
+        generate_ids = self.text_model.generate(
+            input_ids,
+            inputs_embeds=inputs_embeds,
+            attention_mask=attention_mask,
+            max_new_tokens=300,
+            do_sample=True,
+            suppress_tokens=None,
+            pad_token_id=self.tokenizer.eos_token_id
+        )
+
+        generate_ids = generate_ids[:, input_ids.shape[1]:]
+        generate_ids = torch.where(
+            generate_ids == self.tokenizer.eos_token_id,
+            torch.zeros_like(generate_ids),
+            generate_ids
+        )
+
+        captions = self.tokenizer.batch_decode(
+            generate_ids, 
+            skip_special_tokens=False, 
+            clean_up_tokenization_spaces=False
+        )
+        clean_captions = [caption.strip().rstrip('!') for caption in captions]
+
+        return item.image_indices, clean_captions
+
+    def shutdown_worker(self):
+        """Clean up GPU resources"""
+        del self.clip_model
+        del self.tokenizer
+        del self.text_model
+        del self.image_adapter
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
 class JoyCaptionAlphaOne(Node):
     '''Generates captions for images using the JoyCaption Alpha One model.
 
@@ -153,127 +317,50 @@ class JoyCaptionAlphaOne(Node):
             "text_model/adapter_model.safetensors"
         )
 
-        self.log.info("Loading CLIP")
-        self.clip_model = AutoModel.from_pretrained(CLIP_PATH)
-        self.clip_model = self.clip_model.vision_model
+        # Get number of available GPUs
+        num_gpus = torch.cuda.device_count()
+        self.log.info(f"Processing {len(needs_caption)} images with JoyCaptionAlphaOne using {num_gpus} GPUs")
+        if num_gpus == 0:
+            raise RuntimeError("No CUDA devices available")
 
-        self.log.info("Replacing CLIP Layers with JoyCaption Finetune")
-        checkpoint = torch.load(clip_model_path, map_location='cpu', weights_only=True)
-        checkpoint = {k.replace("_orig_mod.module.", ""): v for k, v in checkpoint.items()}
-        self.clip_model.load_state_dict(checkpoint)
-        del checkpoint
-        self.clip_model.eval()
-        self.clip_model.requires_grad_(False)
-        self.clip_model.to("cuda")
+        # Create worker parameters for each GPU
+        worker_params_list = [
+            {
+                'gpu_id': i,
+                'caption_type': self.caption_type,
+                'caption_tone': self.caption_tone,
+                'caption_length': self.caption_length,
+                'cachedir': self.workspace.cache.dir('joycaption-alpha-one')
+            }
+            for i in range(num_gpus)
+        ]
 
-        self.log.info(f"Loading LLama 3.1-8B with JoyCaption Lora")
-        self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_PATH, use_fast=False)
-        assert isinstance(self.tokenizer, PreTrainedTokenizer) or isinstance(self.tokenizer, PreTrainedTokenizerFast), f"Tokenizer is of type {type(self.tokenizer)}"
-        self.text_model = AutoModelForCausalLM.from_pretrained(text_model_path, torch_dtype=torch.bfloat16)
-        self.text_model.eval()
-        self.text_model.to("cuda")
+        # Create batches of work items
+        batches = []
+        for i in range(0, len(needs_caption), self.batch_size):
+            batch_images = needs_caption[i:i + self.batch_size]
+            batch = BatchItem(
+                image_indices=list(range(i, min(i + self.batch_size, len(needs_caption)))),
+                image_paths=[self.workspace.get_path(img) for img in batch_images]
+            )
+            batches.append(batch)
 
-        self.log.info("Loading JoyCaption image adapter")
-        self.image_adapter = ImageAdapter(self.clip_model.config.hidden_size, self.text_model.config.hidden_size, False, False, 38, False)
-        self.image_adapter.load_state_dict(torch.load(image_adapter_path, map_location='cpu', weights_only=True))
-        self.image_adapter.eval()
-        self.image_adapter.to("cuda")
-
-        batches = [needs_caption[i:i + self.batch_size] for i in range(0, len(needs_caption), self.batch_size)]
-
-        for batch in tqdm(batches, desc="JoyCaption"):
-            input_images = [Image.open(self.workspace.get_path(image)) for image in batch]
-            captions = self.generate_batch(input_images, self.caption_type, self.caption_tone, self.caption_length)
-            for image, caption in zip(batch, captions):
-                clean_caption = caption.rstrip('!')
-                image._joycaption.value = clean_caption
-                self.log.info(f"{self.workspace.get_path(image)} => {clean_caption}")
-
-        # Cleanup
-        del self.clip_model, self.tokenizer, self.text_model, self.image_adapter
-        gc.collect()
-        torch.cuda.empty_cache()
-
+        # Create and run the parallel controller
+        controller = ParallelController(JoyCaptionAlphaOneWorker, worker_params_list)
+        
+        with tqdm(total=len(needs_caption), desc="JoyCaption") as pbar:
+            for success, result in controller.run(batches):
+                if not success:
+                    raise RuntimeError(f"Worker failed: {result}")
+                
+                indices, captions = result
+                for idx, caption in zip(indices, captions):
+                    needs_caption[idx]._joycaption.value = caption.rstrip('!')
+                    self.log.info(f"{self.workspace.get_path(needs_caption[idx])} => {caption}")
+                pbar.update(len(indices))
+        
         return dataset
 
-    def generate_batch(self, input_images: list, caption_type: str, caption_tone: str, caption_length: Union[str, int]) -> list:
-        torch.cuda.empty_cache()
-
-        length = None if caption_length == "any" else caption_length
-
-        if caption_type in ["booru", "stable_diffusion"]:
-            caption_tone = "formal"
-
-        prompts = []
-        for _ in input_images:
-            prompt_key = (caption_type, caption_tone, isinstance(length, str), isinstance(length, int))
-            if prompt_key not in CAPTION_TYPE_MAP:
-                raise Abort(f"Invalid caption type in JoyCaptionAlphaOne: {prompt_key}")
-            prompt_str = CAPTION_TYPE_MAP[prompt_key][0].format(length=length, word_count=length)
-            prompts.append(prompt_str)
-
-        processed_images = []
-        for image in input_images:
-            img = image.resize((384, 384), Image.LANCZOS)
-            # convert 4-ch images to 3-ch
-            if img.mode == 'RGBA':
-                img = img.convert('RGB')
-            pixel_values = TVF.pil_to_tensor(img).unsqueeze(0) / 255.0
-            pixel_values = TVF.normalize(pixel_values, [0.5], [0.5])
-            pixel_values = pixel_values.to('cuda')
-            processed_images.append(pixel_values)
-
-        pixel_values = torch.cat(processed_images, dim=0)
-        pixel_values = pixel_values.to('cuda')
-
-        tokenized_prompts = [self.tokenizer.encode(p, return_tensors='pt', padding=False, truncation=False, add_special_tokens=False) for p in prompts]
-        prompt_ids = torch.cat(tokenized_prompts, dim=0).to('cuda')
-
-        with torch.amp.autocast_mode.autocast('cuda', enabled=True):
-            vision_outputs = self.clip_model(pixel_values=pixel_values, output_hidden_states=True)
-            image_features = vision_outputs.hidden_states
-            embedded_images = self.image_adapter(image_features)
-            embedded_images = embedded_images.to('cuda')
-
-        prompt_embeds = self.text_model.model.embed_tokens(prompt_ids)
-        embedded_bos = self.text_model.model.embed_tokens(torch.tensor([self.tokenizer.bos_token_id], device=self.text_model.device, dtype=torch.int64))
-        eot_embed = self.image_adapter.get_eot_embedding().unsqueeze(0).to(dtype=self.text_model.dtype)
-
-        inputs_embeds = torch.cat([
-            embedded_bos.expand(embedded_images.shape[0], -1, -1),
-            embedded_images.to(dtype=embedded_bos.dtype),
-            prompt_embeds,
-            eot_embed.expand(embedded_images.shape[0], -1, -1),
-        ], dim=1)
-
-        input_ids = torch.cat([
-            torch.tensor([self.tokenizer.bos_token_id], dtype=torch.long, device='cuda').unsqueeze(0).expand(len(input_images), -1),
-            torch.zeros((len(input_images), embedded_images.shape[1]), dtype=torch.long, device='cuda'),
-            prompt_ids,
-            torch.tensor([self.tokenizer.convert_tokens_to_ids("<|eot_id|>")], dtype=torch.long, device='cuda').unsqueeze(0).expand(len(input_images), -1),
-        ], dim=1)
-        attention_mask = torch.ones_like(input_ids)
-
-        generate_ids = self.text_model.generate(
-            input_ids,
-            inputs_embeds=inputs_embeds,
-            attention_mask=attention_mask,
-            max_new_tokens=300,
-            do_sample=True,
-            suppress_tokens=None,
-            pad_token_id=self.tokenizer.eos_token_id
-        )
-
-        generate_ids = generate_ids[:, input_ids.shape[1]:]
-        generate_ids = torch.where(
-            generate_ids == self.tokenizer.eos_token_id,
-            torch.zeros_like(generate_ids),
-            generate_ids
-        )
-
-        captions = self.tokenizer.batch_decode(generate_ids, skip_special_tokens=False, clean_up_tokenization_spaces=False)
-        captions = [caption.strip() for caption in captions]
-        return captions
 
 __all__ = [ 'JoyCaptionAlphaOne' ]
 

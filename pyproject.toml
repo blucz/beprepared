@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "beprepared"
-version = "0.2.2"
+version = "0.2.3"
 description = ""
 authors = ["Brian Luczkiewicz <brian@blucz.com>"]
 license = "GPL-3.0-only"
