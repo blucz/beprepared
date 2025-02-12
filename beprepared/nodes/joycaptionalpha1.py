@@ -169,7 +169,7 @@ class JoyCaptionAlphaOneWorker(BaseWorker):
         processed_images = []
         for image in input_images:
             img = image.resize((384, 384), Image.LANCZOS)
-            if img.mode == 'RGBA':
+            if img.mode != 'RGB':
                 img = img.convert('RGB')
             pixel_values = TVF.pil_to_tensor(img).unsqueeze(0) / 255.0
             pixel_values = TVF.normalize(pixel_values, [0.5], [0.5])

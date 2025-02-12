@@ -207,7 +207,7 @@ class JoyCaptionAlphaTwoWorker(BaseWorker):
 
         # Process all images in batch
         images = [img.resize((384, 384), Image.LANCZOS) for img in input_images]
-        images = [img.convert('RGB') if img.mode == 'RGBA' else img for img in images]
+        images = [img.convert('RGB') if img.mode != 'RGB' else img for img in images]
         
         # Convert to tensor and normalize
         pixel_values = torch.stack([
