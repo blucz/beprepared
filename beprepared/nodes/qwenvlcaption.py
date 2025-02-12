@@ -1,6 +1,6 @@
 import os
 import gc
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 
