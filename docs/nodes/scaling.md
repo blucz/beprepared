@@ -31,14 +31,15 @@ dataset >> Downscale(max_edge=1024)
 Upsample images where their longest edge is less than `min_edge`. Images that are already large enough are not modified.
 
 `UpscaleMethod.PIL` uses the `LANCOZ` resampling filter.
+`UpscaleMethod.SWINIR` uses the SwinIR neural network model for high-quality upscaling.
 
-_NOTE: AI based upscaling is planned for the future. ESRGAN is partially implemented, but it requires hacks to work 
-because of [bugs](https://github.com/XPixelGroup/BasicSR/issues/533) in `basicsr`. There is a plan to work around this 
-on our side, but it is not done yet._
+_NOTE: ESRGAN is partially implemented, but it requires hacks to work because of [bugs](https://github.com/XPixelGroup/BasicSR/issues/533) in `basicsr`. There is a plan to work around this on our side, but it is not done yet._
 
 ## Parameters
 
-- `method` (default=`UpscaleMethod.PIL`): The method to use for upscaling (currently only `UpscaleMethod.PIL` is supported)
+- `method` (default=`UpscaleMethod.PIL`): The method to use for upscaling:
+  - `UpscaleMethod.PIL`: Fast CPU-based upscaling using LANCZOS filter
+  - `UpscaleMethod.SWINIR`: High-quality GPU-based upscaling using SwinIR neural network
 - `min_edge` (default=`1024`): The minimum edge length for the upscaling
 - `format` (default=`'PNG'`): The format to save the upscaled images in (e.g., `'PNG'`, `'JPEG'`, `'WEBP'`)
 
