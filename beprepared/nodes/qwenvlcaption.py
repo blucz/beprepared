@@ -21,11 +21,10 @@ class QwenVLCaption(Node):
     DEFAULT_PROMPT = """Describe the contents and style of this image."""
 
     def __init__(self,
-                 target_prop:    str           = 'caption',
-                 prompt:         Optional[str]  = None,
-                 instructions:   Optional[str]  = None,
-                 batch_size:     int           = 1,
-                 device_ids:     List[int]     = None):
+                 target_prop:    str                              = 'caption',
+                 prompt:         Optional[str] = None,
+                 instructions:   Optional[str] = None,
+                 batch_size:     int           = 1):
         '''Initializes the QwenVLCaption node
 
         Args:
@@ -38,7 +37,6 @@ class QwenVLCaption(Node):
         self.target_prop  = target_prop
         self.prompt = prompt or self.DEFAULT_PROMPT
         self.batch_size = batch_size
-        self.device_ids = device_ids or [0]  # Default to first GPU if none specified
         if instructions:
             self.prompt = f"{self.prompt}\n\n{instructions}"
 
@@ -55,27 +53,16 @@ class QwenVLCaption(Node):
             return dataset
 
         MODEL = "Qwen/Qwen2-VL-7B-Instruct"
-        
-        # Initialize models on each GPU
-        models = []
-        processors = []
-        for device_id in self.device_ids:
-            device = f'cuda:{device_id}'
-            model = Qwen2VLForConditionalGeneration.from_pretrained(
-                    MODEL, 
-                    torch_dtype=torch.bfloat16,
-                    trust_remote_code=False,
-            )
-            model.to(device)
-            processor = AutoProcessor.from_pretrained(MODEL, trust_remote_code=True)
-            models.append(model)
-            processors.append(processor)
+        model = Qwen2VLForConditionalGeneration.from_pretrained(
+                MODEL, 
+                torch_dtype=torch.bfloat16,
+                trust_remote_code=False,
+        )
+        model.to('cuda')
+        processor = AutoProcessor.from_pretrained(MODEL, trust_remote_code=True)
 
-        # Calculate effective batch size across all GPUs
-        total_batch_size = self.batch_size * len(self.device_ids)
-        
-        for i in tqdm(range(0, len(needs_caption), total_batch_size), desc="Qwen-VL"):
-            batch_images = needs_caption[i:i + total_batch_size]
+        for i in tqdm(range(0, len(needs_caption), self.batch_size), desc="Qwen-VL"):
+            batch_images = needs_caption[i:i + self.batch_size]
             pil_images = []
             for image in batch_images:
                 path = self.workspace.get_path(image)
@@ -117,71 +104,21 @@ class QwenVLCaption(Node):
                 padding=True,
                 return_tensors="pt",
             )
-            # Split batch across GPUs
-            sub_batches = []
-            for j in range(len(self.device_ids)):
-                start_idx = j * self.batch_size
-                end_idx = start_idx + self.batch_size
-                if start_idx < len(batch_images):
-                    sub_batches.append(batch_images[start_idx:end_idx])
-                    
-            all_output_text = []
-            
-            # Process each sub-batch on its designated GPU
-            for sub_batch, model, processor, device_id in zip(sub_batches, models, processors, self.device_ids):
-                if not sub_batch:
-                    continue
-                    
-                device = f'cuda:{device_id}'
-                
-                # Process sub-batch
-                sub_messages_batch = []
-                sub_text_batch = []
-                for img in sub_batch:
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                { "type": "image", "image": img, },
-                                {"type": "text", "text": self.prompt},
-                            ],
-                        }
-                    ]
-                    sub_messages_batch.append(messages)
-                    text = processor.apply_chat_template(
-                        messages, tokenize=False, add_generation_prompt=True
-                    )
-                    sub_text_batch.append(text)
+            inputs = inputs.to("cuda")
 
-                sub_image_inputs, sub_video_inputs = process_vision_info(sub_messages_batch)
-                sub_inputs = processor(
-                    text=sub_text_batch,
-                    images=sub_image_inputs,
-                    videos=sub_video_inputs,
-                    padding=True,
-                    return_tensors="pt",
-                )
-                sub_inputs = sub_inputs.to(device)
-
-                sub_generated_ids = model.generate(**sub_inputs, max_new_tokens=300, temperature=0.5)
-                sub_generated_ids_trimmed = [
-                    out_ids[len(in_ids):] for in_ids, out_ids in zip(sub_inputs.input_ids, sub_generated_ids)
-                ]
-                sub_output_text = processor.batch_decode(
-                    sub_generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-                )
-                all_output_text.extend(sub_output_text)
-
-            output_text = all_output_text
+            generated_ids = model.generate(**inputs, max_new_tokens=300, temperature=0.5)
+            generated_ids_trimmed = [
+                out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+            ]
+            output_text = processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )
 
             for image, caption in zip(batch_images, output_text):
                 image._qwenvl_caption.value = caption.strip()
 
-        # Cleanup all models and processors
-        for model in models:
-            del model
-        del models
-        del processors
+        # Cleanup
+        del model, processor
         gc.collect()
         torch.cuda.empty_cache()
         
