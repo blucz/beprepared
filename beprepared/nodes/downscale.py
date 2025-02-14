@@ -29,32 +29,40 @@ class Downscale(Node):
 
     def _downscale_worker(args):
         image_path, max_edge, format = args
-        # Load the image using Pillow
-        image = Image.open(image_path)
-        
-        # Resize so that the shorter side is max_edge
-        width, height = image.size
-        if width > height:
-            new_width = max_edge
-            new_height = int((max_edge / width) * height)
-        else:
-            new_height = max_edge
-            new_width = int((max_edge / height) * width)
+        try:
+            # Load the image using Pillow
+            image = Image.open(image_path)
+            
+            # Resize so that the shorter side is max_edge
+            width, height = image.size
+            if width > height:
+                new_width = max_edge
+                new_height = int((max_edge / width) * height)
+            else:
+                new_height = max_edge
+                new_width = int((max_edge / height) * width)
 
-        resized_image = image.resize((new_width, new_height), Image.LANCZOS)
+            resized_image = image.resize((new_width, new_height), Image.LANCZOS)
 
-        if resized_image.mode != 'RGB':
-            resized_image = resized_image.convert('RGB')
+            if resized_image.mode != 'RGB':
+                resized_image = resized_image.convert('RGB')
 
-        byte_array = BytesIO()
-        resized_image.save(byte_array, format=format)
-        
-        return {
-            'path': image_path,
-            'width': new_width,
-            'height': new_height,
-            'bytes': byte_array.getvalue()
-        }
+            byte_array = BytesIO()
+            resized_image.save(byte_array, format=format)
+            
+            return {
+                'success': True,
+                'path': image_path,
+                'width': new_width,
+                'height': new_height,
+                'bytes': byte_array.getvalue()
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'path': image_path,
+                'error': str(e)
+            }
 
     def downscale_image_pil(self, image, max_edge):
         image_path = self.workspace.get_path(image)
@@ -113,9 +121,10 @@ class Downscale(Node):
                     image_path = self.workspace.get_path(image)
                     futures.append(executor.submit(Downscale._downscale_worker, (image_path, self.max_edge, self.format)))
                 
+                failed_images = []
                 for image, future in tqdm(zip(toconvert, as_completed(futures)), total=len(toconvert), desc=f"Downscaling images ({num_workers} workers)"):
-                    try:
-                        result = future.result()
+                    result = future.result()
+                    if result['success']:
                         objectid = self.workspace.put_object(result['bytes'])
                         image._downscale_data.value = {
                             'width': result['width'],
@@ -123,9 +132,10 @@ class Downscale(Node):
                             'objectid': objectid
                         }
                         mapping[image] = newimage(image)
-                    except Exception as e:
-                        self.log.error(f"Error processing {self.workspace.get_path(image)}: {str(e)}")
-                        raise
+                    else:
+                        self.log.error(f"Error processing {self.workspace.get_path(image)}: {result['error']}")
+                        failed_images.append(image)
+                        del mapping[image]  # Remove failed image from mapping
             else:
                 raise Abort(f"Unsupported downscaling method in Downscale: {self.method}")
 

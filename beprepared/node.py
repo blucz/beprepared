@@ -73,11 +73,12 @@ class Node(metaclass=NodeMeta):
             )
 
         self.workspace.web.connect_log(self.__class__.__name__, self.log)
-        self.log.info("Start")
+        # show cumulative len of dataset.images for x in datasets
+        self.log.info(f"Start Processing {sum([len(x.images) for x in datasets])} images")
         start_time = time.perf_counter()
         ret = evalfn()
         end_time = time.perf_counter()
-        self.log.info(f"Finished in {end_time - start_time:.2f}s")
+        self.log.info(f"Finished in {end_time - start_time:.2f}s with {len(ret.images)} images")
         self.workspace.web.disconnect_log(self.__class__.__name__, self.log)
         
         if ret is None:

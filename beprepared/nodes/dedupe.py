@@ -62,10 +62,15 @@ class FuzzyDedupe(Node):
         self.n_neighbors = n_neighbors
 
     def eval(self, dataset: Dataset) -> Dataset:
+
+        if len(dataset.images) == 0:
+            self.log.info("No images to deduplicate")
+            return dataset 
+
         for image in dataset.images:
             if not image.clip.has_value:
                 raise Abort("FuzzyDedupe requires images to have clip embeddings. Run ClipEmbedding first.")
-        self.log.info("Building embedding matrix")
+        self.log.info(f"Building embedding matrix")
         dataset.images.sort(key=lambda image: image.objectid.value)
         embeddings = np.array([image.clip.value for image in dataset.images], dtype='float32')
 
