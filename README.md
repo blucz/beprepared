@@ -149,6 +149,7 @@ This lets you inspect the cache and clear out items, for example if you want to 
 - Human-in-the-loop filtering and tagging
 - Nudity detection using NudeNet
 - Watermark removal using Florence2
+- Anonymization of faces using CenterFace.
 - Improving captions using LLMs
 - Upscaling and downscaling images using PIL
 - Filtering images based on size
