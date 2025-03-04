@@ -334,14 +334,35 @@ class EdgeWatermarkRemoval(Node):
         return image, did_draw
 
     def eval(self, dataset):
+        # First pass - mark all images that need processing and prepare mapping
         needs_processing = []
+        mapping = {x: x for x in dataset.images}
+        
         for image in dataset.images:
             image._watermark_removal = CachedProperty('watermark_removal', 'v2', image)
             if not image._watermark_removal.has_value:
                 needs_processing.append(image)
+            elif image._watermark_removal.value['did_modify']:
+                # Handle cached results
+                data = image._watermark_removal.value
+                mapping[image] = image.with_props({
+                    'objectid': ConstProperty(data['objectid']),
+                    'width': ConstProperty(data['width']),
+                    'height': ConstProperty(data['height']),
+                    'format': ConstProperty(data['format']),
+                    'watermark_info': ConstProperty({
+                        'did_modify': True,
+                        'preview_mode': self.preview_crop,
+                        'original_width': image.width.value,
+                        'original_height': image.height.value,
+                        'scaled_width': data['width'],
+                        'scaled_height': data['height']
+                    })
+                })
 
         if len(needs_processing) == 0:
             self.log.info("No images need watermark removal, skipping")
+            dataset.images = [mapping.get(image, image) for image in dataset.images]
             return dataset
 
         # Get number of available GPUs
