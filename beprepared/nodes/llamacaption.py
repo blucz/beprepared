@@ -82,7 +82,7 @@ class LlamaCaptionWorker(BaseWorker):
 
 class LlamaCaption(Node):
     '''Generates image captions using the Llama 3.2 Vision 11B model'''
-    DEFAULT_PROMPT = "Write 2-3 sentences that describe this image"
+    DEFAULT_PROMPT = "Write 4-6 sentences in one paragraph that describe this image. Include any relevant details about the composition, framing, quality, and subject of the image, as well as a full description of the scene. Only describe what you see in the image, and do not include any personal opinions or assumptions."
 
     def __init__(self,
                  target_prop: str = 'caption',
