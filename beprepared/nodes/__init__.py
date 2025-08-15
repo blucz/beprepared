@@ -12,7 +12,8 @@ from beprepared.nodes.geminicaption import GeminiCaption
 from beprepared.nodes.tags import AddTags, RemoveTags, RewriteTags
 from beprepared.nodes.xgenmmcaption import XGenMMCaption
 from beprepared.nodes.qwenvlcaption import QwenVLCaption 
-from beprepared.nodes.llamacaption import LlamaCaption  
+from beprepared.nodes.llamacaption import LlamaCaption
+from beprepared.nodes.gemma3caption import Gemma3Caption  
 from beprepared.nodes.llmtransform import LLMCaptionTransform, LLMCaptionVariations
 from beprepared.nodes.humanfilter import SmartHumanFilter, HumanFilter
 from beprepared.nodes.humantag import HumanTag

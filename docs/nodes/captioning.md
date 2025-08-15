@@ -206,6 +206,7 @@ We plan to support local LLMs in the future, and would welcome pull requests tha
             >> XGenMMCaption(target_prop='xgenmmcaption')
             >> QwenVLCaption(target_prop='qwenvlcaption')
             >> LlamaCaption(target_prop='llamacaption')
+            >> Gemma3Caption(target_prop='gemma3caption')
             >> LLMCaptionTransform('together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
                                    lambda image: f"""
     Multiple VLMs have captioned this image. These are their results: 
@@ -215,6 +216,7 @@ We plan to support local LLMs in the future, and would welcome pull requests tha
     - XGenMMCaption: {image.xgenmmcaption.value}
     - QwenVLCaption: {image.qwenvlcaption.value}
     - LlamaCaption: {image.llamacaption.value}
+    - Gemma3: {image.gemma3caption.value}
 
     Please generate a final caption for this image based on the above information. Your response should be the caption, with no extra text or boilerplate.
                                    """.strip(),
@@ -241,6 +243,47 @@ Generates captions for images using `Qwen/Qwen2-VL-7B-Instruct`.
 
 ```python
 dataset >> QwenVLCaption
+```
+
+## Gemma3Caption
+
+Generates captions for images using Google's Gemma 3 12B Instruction-Tuned Vision-Language Model.
+
+Gemma 3 is a powerful multimodal model that can process both text and images, generating high-quality text outputs. It supports a 128K token context window and is multilingual, supporting over 140 languages. The model excels at detailed image descriptions, visual question answering, and image analysis.
+
+**Requirements:**
+- **Transformers version:** Requires `transformers >= 4.46.0`. Run `pip install --upgrade transformers` if you encounter model loading errors.
+- **VRAM:** Gemma 3 12B requires significant VRAM (24GB+ recommended). Consider using batch_size=1 to manage memory usage.
+
+### Parameters
+
+- `target_prop` (default: `'caption'`): The property to store the caption in
+- `prompt` (default: Detailed description prompt): The prompt to use for image captioning
+- `system_prompt` (default: `None`): System prompt to set the assistant's behavior
+- `instructions` (default: `None`): Additional instructions to append to the prompt
+- `batch_size` (default: `1`): The number of images to process in parallel. Keep at 1 for 12B model.
+
+### Output properties
+
+- `image.{target_prop}`: The caption generated for the image
+
+### Example
+
+```python
+# Basic usage with default detailed captioning
+dataset >> Gemma3Caption()
+
+# Custom prompt for specific focus
+dataset >> Gemma3Caption(
+    prompt='What objects are visible in this image?'
+)
+
+# With system prompt and instructions
+dataset >> Gemma3Caption(
+    system_prompt='You are an art critic analyzing paintings.',
+    prompt='Analyze this artwork',
+    instructions='Focus on style, technique, and emotional impact'
+)
 ```
 
 ## Passthrough

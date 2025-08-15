@@ -9,8 +9,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
 tomli = "^2.0.1"
-torchvision = "^0.19.1"
-torch = "^2.4.1"
+torchvision = "^0.21.0"
+torch = "^2.6.0"
 tqdm = "^4.66.5"
 peft = "^0.12.0"
 nudenet = ">=3.4.2"
@@ -37,6 +37,7 @@ bitsandbytes = "^0.45.0"
 scikit-image = "^0.25.2"
 onnx = "^1.17.0"
 onnxruntime = "^1.20.1"
+transformers = "^4.55.2"
 
 [tool.poetry.group.dev.dependencies]
 mkdocs = "^1.6.1"
