@@ -24,3 +24,4 @@ from beprepared.nodes.aesthetics import AestheticScore
 from beprepared.nodes.florence2caption import Florence2Caption, Florence2Task
 from beprepared.nodes.molmocaption import MolmoCaption
 from beprepared.nodes.anonymize import Anonymize, AnonymizeMethod
+from beprepared.nodes.crop import CropToAspect
