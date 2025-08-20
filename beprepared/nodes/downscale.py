@@ -182,33 +182,39 @@ class Downscale(Node):
         num_workers = multiprocessing.cpu_count()
         with ProcessPoolExecutor(max_workers=num_workers) as executor:
             if self.method == DownscaleMethod.PIL:
-                futures = []
+                # Create futures with image references
+                future_to_image = {}
                 for image in toconvert:
                     image_path = self.workspace.get_path(image)
-                    futures.append(executor.submit(Downscale._downscale_worker, 
-                                                 (image_path, 
-                                                  edge_value if is_max_edge else None,
-                                                  edge_value if not is_max_edge else None, 
-                                                  self.format)))
+                    future = executor.submit(Downscale._downscale_worker, 
+                                           (image_path, 
+                                            edge_value if is_max_edge else None,
+                                            edge_value if not is_max_edge else None, 
+                                            self.format))
+                    future_to_image[future] = image
                 
                 failed_images = []
-                for image, future in tqdm(zip(toconvert, as_completed(futures)), total=len(toconvert), desc=f"Downscaling images ({num_workers} workers)"):
-                    result = future.result()
-                    if result['success']:
-                        if result.get('skipped', False):
-                            # Image didn't need scaling, keep original
-                            continue
-                        objectid = self.workspace.put_object(result['bytes'])
-                        image._downscale_data.value = {
-                            'width': result['width'],
-                            'height': result['height'],
-                            'objectid': objectid
-                        }
-                        mapping[image] = newimage(image)
-                    else:
-                        self.log.error(f"Error processing {self.workspace.get_path(image)}: {result['error']}")
-                        failed_images.append(image)
-                        del mapping[image]  # Remove failed image from mapping
+                with tqdm(total=len(toconvert), desc=f"Downscaling images ({num_workers} workers)") as pbar:
+                    for future in as_completed(future_to_image):
+                        image = future_to_image[future]
+                        result = future.result()
+                        pbar.update(1)
+                        
+                        if result['success']:
+                            if result.get('skipped', False):
+                                # Image didn't need scaling, keep original
+                                continue
+                            objectid = self.workspace.put_object(result['bytes'])
+                            image._downscale_data.value = {
+                                'width': result['width'],
+                                'height': result['height'],
+                                'objectid': objectid
+                            }
+                            mapping[image] = newimage(image)
+                        else:
+                            self.log.error(f"Error processing {self.workspace.get_path(image)}: {result['error']}")
+                            failed_images.append(image)
+                            del mapping[image]  # Remove failed image from mapping
             else:
                 raise Abort(f"Unsupported downscaling method in Downscale: {self.method}")
 

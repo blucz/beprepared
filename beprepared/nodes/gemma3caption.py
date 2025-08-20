@@ -46,8 +46,6 @@ class Gemma3CaptionWorker(BaseWorker):
         # Load processor for handling both text and images
         self.processor = AutoProcessor.from_pretrained(MODEL, trust_remote_code=True)
         self.prompt = self.worker_params['prompt']
-        self.system_prompt = self.worker_params.get('system_prompt', 
-                                                    "You are a helpful assistant that describes images accurately and concisely.")
 
     def process_item(self, item: BatchItem) -> Tuple[List[int], List[str]]:
         """Process a batch of images and return their captions"""
@@ -60,10 +58,6 @@ class Gemma3CaptionWorker(BaseWorker):
                 
                 # Prepare messages with image and text
                 messages = [
-                    {
-                        "role": "system",
-                        "content": [{"type": "text", "text": self.system_prompt}]
-                    },
                     {
                         "role": "user",
                         "content": [
@@ -94,7 +88,7 @@ class Gemma3CaptionWorker(BaseWorker):
                 with torch.inference_mode():
                     generated_ids = self.model.generate(
                         **inputs,
-                        max_new_tokens=300,
+                        max_new_tokens=512,
                         temperature=0.5,
                         do_sample=True,
                         top_p=0.9,
@@ -142,12 +136,10 @@ class Gemma3Caption(Node):
     '''
     
     DEFAULT_PROMPT = "Describe this image in detail, including the subject, composition, colors, lighting, and any notable features or context."
-    DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant that describes images accurately and concisely."
 
     def __init__(self,
                  target_prop: str = 'caption',
                  prompt: Optional[str] = None,
-                 system_prompt: Optional[str] = None,
                  instructions: Optional[str] = None,
                  batch_size: int = 1):
         '''Initializes the Gemma3Caption node
@@ -156,8 +148,6 @@ class Gemma3Caption(Node):
             target_prop (str): The property to store the caption in (default: 'caption')
             prompt (str): The prompt to use for the Gemma 3 model 
                          (default: detailed description prompt)
-            system_prompt (str): System prompt to set the assistant's behavior
-                               (default: "You are a helpful assistant that describes images accurately and concisely.")
             instructions (str): Additional instructions to append to the prompt (optional)
             batch_size (int): The number of images to process in parallel. 
                              Note: Gemma 3 12B requires significant VRAM, so batch_size=1 is recommended
@@ -165,7 +155,6 @@ class Gemma3Caption(Node):
         super().__init__()
         self.target_prop = target_prop
         self.prompt = prompt or self.DEFAULT_PROMPT
-        self.system_prompt = system_prompt or self.DEFAULT_SYSTEM_PROMPT
         self.batch_size = batch_size
         if instructions:
             self.prompt = f"{self.prompt}\n\n{instructions}"
@@ -174,10 +163,9 @@ class Gemma3Caption(Node):
         needs_caption = []
         for image in dataset.images:
             # Create cached property with system prompt included in cache key
-            image._gemma3_caption = CachedProperty('gemma3-12b-it', 'v1', self.prompt, self.system_prompt, image)
-            setattr(image, self.target_prop, ComputedProperty(
-                lambda img: img._gemma3_caption.value if img._gemma3_caption.has_value else None
-            ))
+            image._gemma3_caption = CachedProperty('gemma3-12b-it', 'v1', self.prompt, image)
+            # Use lambda with image parameter like other caption nodes
+            setattr(image, self.target_prop, ComputedProperty(lambda image: image._gemma3_caption.value if image._gemma3_caption.has_value else None))
             if not image._gemma3_caption.has_value:
                 needs_caption.append(image)
 
@@ -197,7 +185,6 @@ class Gemma3Caption(Node):
             {
                 'gpu_id': i, 
                 'prompt': self.prompt,
-                'system_prompt': self.system_prompt
             }
             for i in range(num_gpus)
         ]
