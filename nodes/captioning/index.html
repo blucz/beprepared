@@ -1,0 +1,2229 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../anonymize/">
+      
+      
+        <link rel="next" href="../clip/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.17">
+    
+    
+      
+        <title>Captioning - beprepared!</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#captioning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="beprepared!" class="md-header__button md-logo" aria-label="beprepared!" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            beprepared!
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Captioning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="beprepared!" class="md-nav__button md-logo" aria-label="beprepared!" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    beprepared!
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hacking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Nodes
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Nodes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aesthetics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Aesthetics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../anonymize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Face Anonymization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Captioning
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Captioning
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#geminicaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      GeminiCaption
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gpt4ocaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      GPT4oCaption
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joycaptionalphaone" class="md-nav__link">
+    <span class="md-ellipsis">
+      JoyCaptionAlphaOne
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JoyCaptionAlphaOne">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joycaptionalphatwo" class="md-nav__link">
+    <span class="md-ellipsis">
+      JoyCaptionAlphaTwo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JoyCaptionAlphaTwo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llamacaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      LlamaCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LlamaCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llmcaptionvariations" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLMCaptionVariations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LLMCaptionVariations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llmcaptiontransform" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLMCaptionTransform
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LLMCaptionTransform">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qwenvlcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      QwenVLCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QwenVLCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gemma3caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gemma3Caption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gemma3Caption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      Passthrough
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Passthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      SetCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SetCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xgenmmcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      XGenMMCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XGenMMCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#florence2caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Florence2Caption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Florence2Caption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLIP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../convertformat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Format Conversion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../crop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cropping Nodes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dedupe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deduplication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filtering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Loading Images
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nsfw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    NSFW
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../save/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Saving Datasets
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scaling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../watermarkremoval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Watermark Removal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#geminicaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      GeminiCaption
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gpt4ocaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      GPT4oCaption
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joycaptionalphaone" class="md-nav__link">
+    <span class="md-ellipsis">
+      JoyCaptionAlphaOne
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JoyCaptionAlphaOne">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joycaptionalphatwo" class="md-nav__link">
+    <span class="md-ellipsis">
+      JoyCaptionAlphaTwo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JoyCaptionAlphaTwo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llamacaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      LlamaCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LlamaCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llmcaptionvariations" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLMCaptionVariations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LLMCaptionVariations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llmcaptiontransform" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLMCaptionTransform
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LLMCaptionTransform">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qwenvlcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      QwenVLCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QwenVLCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gemma3caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gemma3Caption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gemma3Caption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      Passthrough
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Passthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      SetCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SetCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xgenmmcaption" class="md-nav__link">
+    <span class="md-ellipsis">
+      XGenMMCaption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XGenMMCaption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#florence2caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Florence2Caption
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Florence2Caption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-properties_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="captioning">Captioning</h1>
+<h2 id="geminicaption">GeminiCaption</h2>
+<p>Generates captions for images using Gemini 2.0 Flash Vision.</p>
+<p>You must set either <code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code> in your environment to use this node.</p>
+<h2 id="parameters">Parameters</h2>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>prompt</code> (default: <code>None</code>): The prompt to use for the Gemini model</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to append to the prompt</li>
+<li><code>parallel</code> (default: <code>8</code>): The number of images to process in parallel. Adjust based on API rate limits.</li>
+</ul>
+<h3 id="output-properties">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; GeminiCaption()
+</code></pre>
+<h2 id="gpt4ocaption">GPT4oCaption</h2>
+<p>Generates captions for images using GPT4o.</p>
+<p>You must set <code>OPENAI_API_KEY</code> in your environment to use this node.</p>
+<h2 id="parameters_1">Parameters</h2>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>caption_type</code> (default: <code>'descriptive'</code>): The type of caption to generate (<code>'descriptive'</code> or <code>'booru'</code>)</li>
+<li><code>prompt</code> (default: <code>None</code>): The prompt to use for the GPT-4o model (read the code if you're curious about customizing this)</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to append to the prompt</li>
+<li><code>parallel</code> (default: <code>8</code>): The number of images to process in parallel. Adjust based on OpenAI rate limits.</li>
+</ul>
+<h3 id="output-properties_1">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_1">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; Gpt4oCaption(caption_type='descriptive')
+</code></pre>
+<h2 id="joycaptionalphaone">JoyCaptionAlphaOne</h2>
+<p>Generates captions for images using JoyCaption Alpha One</p>
+<h3 id="parameters_2">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>caption_type</code> (default: <code>'descriptive'</code>): The type of caption to generate (<code>'descriptive'</code>, <code>'stable_diffusion'</code>, or <code>'booru'</code>)</li>
+<li><code>caption_tone</code> (default: <code>'formal'</code>): The tone of the caption (<code>'formal'</code> or <code>'informal'</code>)</li>
+<li><code>caption_length</code> (default: <code>'any'</code>): The length of the caption (<code>'any'</code> or an integer)</li>
+<li><code>batch_size</code> (default: <code>4</code>): The number of images to process in parallel</li>
+</ul>
+<h3 id="output-properties_2">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_2">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; JoyCaptionAlphaOne
+</code></pre>
+<h2 id="joycaptionalphatwo">JoyCaptionAlphaTwo</h2>
+<p>Generates captions for images using JoyCaption Alpha Two with additional caption types and options.</p>
+<h3 id="parameters_3">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>caption_type</code> (default: <code>'descriptive'</code>): The type of caption to generate. Options:</li>
+<li><code>'descriptive'</code></li>
+<li><code>'descriptive_informal'</code></li>
+<li><code>'training_prompt'</code></li>
+<li><code>'midjourney'</code></li>
+<li><code>'booru_tag_list'</code></li>
+<li><code>'booru_like_tag_list'</code></li>
+<li><code>'art_critic'</code></li>
+<li><code>'product_listing'</code></li>
+<li><code>'social_media_post'</code></li>
+<li><code>caption_length</code> (default: <code>'long'</code>): The length of the caption (<code>'any'</code>, <code>'very short'</code>, <code>'short'</code>, <code>'medium-length'</code>, <code>'long'</code>, <code>'very long'</code>, or an integer)</li>
+<li><code>extra_options</code> (default: <code>[]</code>): List of extra options to include in the caption</li>
+<li><code>name_input</code> (default: <code>''</code>): Name to use when referring to people/characters in the image</li>
+<li><code>batch_size</code> (default: <code>4</code>): The number of images to process in parallel</li>
+</ul>
+<h3 id="output-properties_3">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_3">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; JoyCaptionAlphaTwo(
+    caption_type='art_critic',
+    caption_length='very long',
+    extra_options=['Include information about lighting'],
+    name_input='Alice'
+)
+</code></pre>
+<h2 id="llamacaption">LlamaCaption</h2>
+<p>Generates captions for images using <code>meta-llama/llama-3.2-11B-Vision-Instruct</code>.</p>
+<p>In order to download this model, you need to be logged into huggingface.</p>
+<h3 id="parameters_4">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>prompt</code> (default: <code>None</code>): The prompt to use for the Llama model (read the code)</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to include in the prompt</li>
+<li><code>batch_size</code> (default: <code>1</code>): The number of images to process in parallel. If you are running out of memory, try reducing this value.</li>
+</ul>
+<h3 id="output-properties_4">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_4">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; LlamaCaption
+</code></pre>
+<h2 id="llmcaptionvariations">LLMCaptionVariations</h2>
+<p>Generates variations of existing image captions using LLaMA 3.1 8B Instruct. This preserves the original caption and adds numbered variations as new properties.</p>
+<h3 id="parameters_5">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): Base property name to store variations in. Will append _1, _2 etc.</li>
+<li><code>variations</code> (default: <code>2</code>): Number of variations to generate per image</li>
+<li><code>parallel</code> (default: <code>20</code>): The number of images to process in parallel</li>
+<li><code>temperature</code> (default: <code>0.7</code>): The temperature to use when sampling from the model</li>
+<li><code>model</code> (default: <code>'together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo'</code>): The LLM model to use for generating variations</li>
+</ul>
+<h3 id="output-properties_5">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The original caption (preserved)</li>
+<li><code>image.{target_prop}_1</code>: First variation</li>
+<li><code>image.{target_prop}_2</code>: Second variation (if variations &gt; 1)</li>
+<li>etc.</li>
+</ul>
+<h3 id="example_5">Example</h3>
+<pre><code class="language-python"># Generate 3 variations of each caption
+dataset &gt;&gt; LLMCaptionVariations(variations=3)
+</code></pre>
+<h2 id="llmcaptiontransform">LLMCaptionTransform</h2>
+<p>Computes image captions using a Large Language Model. This can be used for a number of purposes included:</p>
+<ul>
+<li>Cleaning up captions from VLMs</li>
+<li>Computing better captions by combining results from multiple VLMs</li>
+<li>Computing captions based on tags or other metadata</li>
+<li>Combining tags or other metadata with VLM caption results</li>
+<li>Transforming captions into different styles (e.g. fluid vs booru).</li>
+</ul>
+<p>And so on. This is commonly one of the last nodes in a workflow, that determines the final caption.</p>
+<p>Language models are accessed via API using <a href="https://github.com/BerriAI/litellm">litellm</a>. Model strings 
+should follow their conventions. For example:</p>
+<ul>
+<li><code>together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo</code></li>
+<li><code>together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo</code></li>
+<li><code>openai/gpt-4o</code></li>
+<li><code>openai/gpt-4o-mini</code></li>
+</ul>
+<p>Depending on the platform used, you will need to set environment variables like <code>OPENAI_API_KEY</code> or <code>TOGETHER_API_KEY</code> or <code>ANTHROPIC_API_KEY</code> to access the models.</p>
+<p>Be aware that OpenAI and Anthropic models are relatively censored and may refuse certain tasks based on the content. We have had
+good experiences with Llama and Qwen models.</p>
+<p>LLM results are cached with the model, prompt, and parameters as the key, beprepared will never execute the same request twice.</p>
+<p>We plan to support local LLMs in the future, and would welcome pull requests that implement this efficiently. </p>
+<h3 id="parameters_6">Parameters</h3>
+<ul>
+<li><code>model</code>: The name of the language model to use</li>
+<li><code>prompt</code>: A function that takes an image and returns a prompt for the language model</li>
+<li><code>target_prop</code> (default: <code>caption</code>): The property to store the transformed caption in</li>
+<li><code>parallel</code> (default: <code>20</code>): The number of images to process in parallel. Adjust based on rate limits</li>
+<li><code>temperature</code> (default: <code>0.5</code>): The temperature to use when sampling from the language model. In general, lower temperatures give more consistent and "safe" results and reduce the language model's tendency to hallucinate.</li>
+</ul>
+<h3 id="output-properties_6">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The transformed caption</li>
+</ul>
+<h3 id="example_6">Example</h3>
+<pre><code class="language-python">
+            dataset 
+            &gt;&gt; JoyCaptionAlphaOne(target_prop='joycaption')
+            &gt;&gt; GPT4oCaption(target_prop='gpt4ocaption')
+            &gt;&gt; XGenMMCaption(target_prop='xgenmmcaption')
+            &gt;&gt; QwenVLCaption(target_prop='qwenvlcaption')
+            &gt;&gt; LlamaCaption(target_prop='llamacaption')
+            &gt;&gt; Gemma3Caption(target_prop='gemma3caption')
+            &gt;&gt; LLMCaptionTransform('together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+                                   lambda image: f&quot;&quot;&quot;
+    Multiple VLMs have captioned this image. These are their results: 
+
+    - JoyCaption: {image.joycaption.value}
+    - GPT4oCaption: {image.gpt4ocaption.value}
+    - XGenMMCaption: {image.xgenmmcaption.value}
+    - QwenVLCaption: {image.qwenvlcaption.value}
+    - LlamaCaption: {image.llamacaption.value}
+    - Gemma3: {image.gemma3caption.value}
+
+    Please generate a final caption for this image based on the above information. Your response should be the caption, with no extra text or boilerplate.
+                                   &quot;&quot;&quot;.strip(),
+                                   target_prop='caption')
+</code></pre>
+<h2 id="qwenvlcaption">QwenVLCaption</h2>
+<p>Generates captions for images using <code>Qwen/Qwen2-VL-7B-Instruct</code>.</p>
+<h3 id="parameters_7">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>prompt</code> (default: <code>None</code>): The prompt to use for the Qwen 2 VL 7B model (read the code)</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to include in the prompt</li>
+<li><code>batch_size</code> (default: <code>1</code>): The number of images to process in parallel. If you are running out of memory, try reducing this value.</li>
+</ul>
+<h3 id="output-properties_7">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_7">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; QwenVLCaption
+</code></pre>
+<h2 id="gemma3caption">Gemma3Caption</h2>
+<p>Generates captions for images using Google's Gemma 3 12B Instruction-Tuned Vision-Language Model.</p>
+<p>Gemma 3 is a powerful multimodal model that can process both text and images, generating high-quality text outputs. It supports a 128K token context window and is multilingual, supporting over 140 languages. The model excels at detailed image descriptions, visual question answering, and image analysis.</p>
+<p><strong>Requirements:</strong>
+- <strong>Transformers version:</strong> Requires <code>transformers &gt;= 4.46.0</code>. Run <code>pip install --upgrade transformers</code> if you encounter model loading errors.
+- <strong>VRAM:</strong> Gemma 3 12B requires significant VRAM (24GB+ recommended). Consider using batch_size=1 to manage memory usage.</p>
+<h3 id="parameters_8">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>prompt</code> (default: Detailed description prompt): The prompt to use for image captioning</li>
+<li><code>system_prompt</code> (default: <code>None</code>): System prompt to set the assistant's behavior</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to append to the prompt</li>
+<li><code>batch_size</code> (default: <code>1</code>): The number of images to process in parallel. Keep at 1 for 12B model.</li>
+</ul>
+<h3 id="output-properties_8">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_8">Example</h3>
+<pre><code class="language-python"># Basic usage with default detailed captioning
+dataset &gt;&gt; Gemma3Caption()
+
+# Custom prompt for specific focus
+dataset &gt;&gt; Gemma3Caption(
+    prompt='What objects are visible in this image?'
+)
+
+# With system prompt and instructions
+dataset &gt;&gt; Gemma3Caption(
+    system_prompt='You are an art critic analyzing paintings.',
+    prompt='Analyze this artwork',
+    instructions='Focus on style, technique, and emotional impact'
+)
+</code></pre>
+<h2 id="passthrough">Passthrough</h2>
+<p>A node that does nothing and returns the dataset unchanged. This can be useful as a no-op placeholder in conditional pipeline branches.</p>
+<h3 id="example_9">Example</h3>
+<pre><code class="language-python"># Use Passthrough as a no-op alternative in a conditional
+dataset &gt;&gt; (ProcessNode() if condition else Passthrough())
+</code></pre>
+<h2 id="mapcaption">MapCaption</h2>
+<p>Maps the current caption to a new caption using a function.</p>
+<h3 id="parameters_9">Parameters</h3>
+<ul>
+<li><code>func</code>: Function that takes the current caption string and returns a new caption string.</li>
+</ul>
+<h3 id="output-properties_9">Output Properties</h3>
+<ul>
+<li><code>image.caption</code>: The transformed caption.</li>
+</ul>
+<h3 id="example_10">Example</h3>
+<pre><code class="language-python"># Add an exclamation mark to all captions
+dataset &gt;&gt; MapCaption(lambda caption: caption + &quot;!&quot;)
+
+# Prepend a prefix to all captions
+dataset &gt;&gt; MapCaption(lambda caption: f&quot;A photo showing {caption}&quot;)
+</code></pre>
+<h2 id="setcaption">SetCaption</h2>
+<p>Sets the <code>caption</code> property on an image.</p>
+<h3 id="parameters_10">Parameters</h3>
+<ul>
+<li><code>caption</code>: The caption to set.</li>
+</ul>
+<h3 id="output-properties_10">Output Properties</h3>
+<ul>
+<li><code>image.caption</code>: The caption of the image.</li>
+</ul>
+<h3 id="example_11">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; SetCaption(&quot;ohwx person&quot;)
+</code></pre>
+<h2 id="xgenmmcaption">XGenMMCaption</h2>
+<p>Generates captions for images using <code>Salesforce/xgen-mm-phi3-mini-instruct-r-v1</code>.</p>
+<h3 id="parameters_11">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>prompt</code> (default: <code>None</code>): The prompt to use for the xGen-mm model (read the code)</li>
+<li><code>instructions</code> (default: <code>None</code>): Additional instructions to include in the prompt</li>
+<li><code>batch_size</code> (default: <code>4</code>): The number of images to process in parallel. If you are running out of memory, try reducing this value.</li>
+</ul>
+<h3 id="output-properties_11">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_12">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; XGenMMCaption
+</code></pre>
+<h2 id="florence2caption">Florence2Caption</h2>
+<p>Generates captions for images using the Florence-2-large model.</p>
+<h3 id="parameters_12">Parameters</h3>
+<ul>
+<li><code>target_prop</code> (default: <code>'caption'</code>): The property to store the caption in</li>
+<li><code>task</code> (default: <code>Florence2Task.MORE_DETAILED_CAPTION</code>): The captioning task to perform. One of:</li>
+<li><code>Florence2Task.CAPTION</code>: Basic caption</li>
+<li><code>Florence2Task.DETAILED_CAPTION</code>: Detailed caption</li>
+<li><code>Florence2Task.MORE_DETAILED_CAPTION</code>: More detailed caption</li>
+<li><code>batch_size</code> (default: <code>8</code>): The number of images to process in parallel. If you are running out of memory, try reducing this value.</li>
+</ul>
+<h3 id="output-properties_12">Output properties</h3>
+<ul>
+<li><code>image.{target_prop}</code>: The caption generated for the image</li>
+</ul>
+<h3 id="example_13">Example</h3>
+<pre><code class="language-python">dataset &gt;&gt; Florence2Caption(task=Florence2Task.DETAILED_CAPTION)
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
