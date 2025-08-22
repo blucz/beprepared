@@ -17,6 +17,7 @@ from beprepared.nodes.gemma3caption import Gemma3Caption
 from beprepared.nodes.llmtransform import LLMCaptionTransform, LLMCaptionVariations
 from beprepared.nodes.humanfilter import SmartHumanFilter, HumanFilter
 from beprepared.nodes.humantag import HumanTag
+from beprepared.nodes.humancaption import HumanCaption
 from beprepared.nodes.upscale import Upscale, UpscaleMethod
 from beprepared.nodes.downscale import Downscale, DownscaleMethod
 from beprepared.nodes.dedupe import ExactDedupe, FuzzyDedupe

@@ -169,6 +169,7 @@ import axios from 'axios';
 // Import all known applet components
 import HumanTag from './HumanTag.vue';
 import HumanFilter from './HumanFilter.vue';
+import HumanCaption from './HumanCaption.vue';
 import Generic from './Generic.vue';
 
 
@@ -226,6 +227,9 @@ const activate = async (appletName, path, component) => {
       break;
     case 'HumanFilter':
       applet.value = HumanFilter;
+      break;
+    case 'HumanCaption':
+      applet.value = HumanCaption;
       break;
     default:
       applet.value = Generic;
